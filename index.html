@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gems Elite Pro 💎</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c3aed">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gems Elite">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10452/10452843.png">
+
+<script>
+  // Registra o Service Worker para habilitar o PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("PWA: Service Worker Registrado!"))
+      .catch(err => console.log("PWA: Erro no registro", err));
+  }
+</script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root { 
+            --bg: #020617; 
+            --primary: #a78bfa; 
+            --primary-dark: #7c3aed;
+            --secondary: #10b981; 
+            --danger: #f43f5e; 
+            --surface: rgba(30, 41, 59, 0.4);
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg));
+            color: white; margin: 0; height: 100vh; overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        .app-header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- MENU LATERAL (SIDEBAR) --- */
+        .sidebar {
+            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+            background: #0f172a; z-index: 3000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 25px; box-sizing: border-box;
+        }
+        .sidebar.open { left: 0; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 2500; backdrop-filter: blur(4px); }
+        .overlay.active { display: block; }
+
+        /* --- NOTIFICAÇÕES --- */
+        .bell-box { position: relative; cursor: pointer; font-size: 1.3rem; }
+        .notif-badge { 
+            position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; 
+            background: var(--danger); border-radius: 50%; display: none; border: 2px solid var(--bg);
+        }
+        .notif-drawer {
+            position: fixed; top: 80px; right: 20px; width: 280px; 
+            background: #1e293b; border-radius: 20px; padding: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); z-index: 1100;
+            display: none; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* --- CONTA SWITCHER --- */
+        .account-switcher {
+            display: flex; background: rgba(0,0,0,0.4); 
+            padding: 5px; border-radius: 100px; margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .switch-btn {
+            flex: 1; padding: 10px; border-radius: 100px; text-align: center;
+            font-size: 0.7rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.4);
+        }
+        .switch-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3); }
+
+        /* --- UI GERAL --- */
+        .page { height: 100vh; overflow-y: auto; padding-top: 80px; padding-bottom: 120px; display: none; }
+        .page-active { display: block; animation: slideUp 0.4s ease-out; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .balance-card {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            margin: 0 20px 25px; padding: 35px 25px; border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2); text-align: center;
+        }
+
+        .glass-box {
+            background: var(--surface); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px;
+            padding: 25px; margin: 0 20px;
+        }
+
+        input {
+            width: 100%; padding: 18px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2); color: white; font-size: 1rem; box-sizing: border-box;
+            outline: none; margin-bottom: 15px; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); background: rgba(0,0,0,0.4); }
+
+        .btn-main { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--primary); color: white; font-weight: 800; cursor: pointer; }
+
+        .transaction-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--glass); padding: 16px; border-radius: 20px;
+            margin: 0 20px 10px; border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .bottom-nav {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 85%; height: 75px; background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px); border-radius: 25px; display: flex;
+            align-items: center; justify-content: space-around;
+            border: 1px solid rgba(255,255,255,0.1); z-index: 1000;
+        }
+        .nav-item { font-size: 1.3rem; opacity: 0.3; text-align: center; transition: 0.3s; cursor: pointer; }
+        .nav-item.active { opacity: 1; color: var(--primary); transform: translateY(-5px); }
+        .nav-item small { display: block; font-size: 0.6rem; font-weight: 700; }
+
+        #login-screen, #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="mainOverlay" onclick="closeAllMenus()"></div>
+
+    <div class="app-header">
+        <div onclick="toggleSidebar()" style="font-size: 1.5rem; cursor:pointer">☰</div>
+        <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 1.2rem;">GEMS ELITE 💎</div>
+        <div class="bell-box" onclick="toggleNotifs()">
+            🔔<div class="notif-badge" id="notif-dot"></div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <h2 style="color: var(--primary); margin-bottom: 5px;">Minha Conta</h2>
+        <p id="side-user-name" style="margin:0; font-weight:800; font-size: 1.1rem;"></p>
+        <p id="side-user-email" style="font-size:0.75rem; opacity:0.5; margin-bottom: 40px;"></p>
+        
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div onclick="switchTab('home', this); toggleSidebar()" style="cursor:pointer">🏠 Início</div>
+            <div onclick="switchTab('extrato', this); toggleSidebar()" style="cursor:pointer">📜 Extrato</div>
+            <div onclick="switchTab('vinculo', this); toggleSidebar()" style="cursor:pointer">👥 Grupo</div>
+        </div>
+
+        <button onclick="logout()" style="position: absolute; bottom: 40px; width: calc(100% - 50px); background: none; border: 1px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 12px; font-weight: bold; cursor:pointer;">
+            Sair da Conta 🚪
+        </button>
+    </div>
+
+    <div class="notif-drawer" id="notifPanel">
+        <h4 style="margin: 0 0 15px 0; display: flex; justify-content: space-between;">
+            Notificações <small onclick="clearNotifs()" style="color: var(--primary); cursor:pointer">Limpar</small>
+        </h4>
+        <div id="notif-list" style="font-size: 0.8rem; max-height: 300px; overflow-y: auto;">
+            <p id="empty-notif" style="opacity: 0.5;">Tudo limpo por aqui! ✨</p>
+        </div>
+    </div>
+
+    <div id="login-screen" class="hidden">
+        <div class="glass-box" style="width: 85%; text-align: center;">
+            <h1 style="margin-bottom: 25px;">Acesse sua conta</h1>
+            <input type="email" id="email" placeholder="E-mail" onkeyup="if(event.key==='Enter') document.getElementById('pass').focus()">
+            <input type="password" id="pass" placeholder="Senha" onkeyup="if(event.key==='Enter') login()">
+            <button class="btn-main" onclick="login()">Entrar 💎</button>
+        </div>
+    </div>
+
+    <div id="onboarding-screen" class="hidden">
+        <div class="glass-box" style="width: 85%; text-align: center;">
+            <h2>Como quer ser chamado?</h2>
+            <input type="text" id="nickname" placeholder="Ex: Marlon" onkeyup="if(event.key==='Enter') saveNickname()">
+            <button class="btn-main" onclick="saveNickname()">Salvar Perfil</button>
+        </div>
+    </div>
+
+    <div id="page-home" class="page page-active">
+        <div class="account-switcher">
+            <div id="btn-pessoal" class="switch-btn active" onclick="changeMode('pessoal')">PESSOAL</div>
+            <div id="btn-grupo" class="switch-btn" onclick="changeMode('grupo')">GRUPO</div>
+        </div>
+
+        <div class="balance-card">
+            <p id="label-conta" style="font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; opacity: 0.7; margin-bottom: 10px;">CONTA PESSOAL</p>
+            <h1 id="saldoDisplay" style="font-size: 3.2rem; margin: 0; font-weight: 800;">R$ 0,00</h1>
+        </div>
+
+        <div class="glass-box">
+            <input type="text" id="desc" placeholder="O que foi isso?" oninput="detectType(this)" onkeyup="if(event.key==='Enter') document.getElementById('valor').focus()">
+            <input type="number" id="valor" placeholder="Valor R$ 0,00" onkeyup="if(event.key==='Enter') addTransaction()">
+            <div id="tag-tipo" style="height:20px; font-size:0.75rem; font-weight:800; margin-bottom:15px; text-align:center;"></div>
+            <button class="btn-main" id="btn-save" onclick="addTransaction()">Lançar Agora 🚀</button>
+        </div>
+
+        <div style="padding: 30px 20px 10px;"><p style="font-size: 0.7rem; font-weight: 800; opacity: 0.4; letter-spacing: 1px;">MOVIMENTAÇÕES RECENTES</p></div>
+        <div id="listaHome"></div>
+    </div>
+
+    <div id="page-extrato" class="page">
+        <div style="padding: 20px;">
+            <h2 style="font-weight: 800; font-size: 1.8rem;">Meu Extrato</h2>
+            <div id="listaExtrato"></div>
+        </div>
+    </div>
+
+    <div id="page-vinculo" class="page">
+        <div style="padding: 20px;">
+            <h2 style="font-weight: 800;">Membros do Grupo</h2>
+            <div class="glass-box" id="members-list" style="margin: 0 0 20px 0; padding: 15px;"></div>
+            <div class="glass-box" style="margin: 0;">
+                <p style="font-size: 0.6rem; text-align: center; opacity: 0.5;">CONVIDAR ALGUÉM</p>
+                <button class="btn-main" onclick="createInviteCode()" style="background: none; border: 1px solid var(--primary); margin: 15px 0;">Gerar Chave</button>
+                <div id="invite-display" style="text-align: center; font-size: 2rem; font-weight: 900; color: var(--primary);"></div>
+                <input type="text" id="code-input" placeholder="Colar chave" style="margin-top: 20px;" onkeyup="if(event.key==='Enter') joinByCode()">
+                <button class="btn-main" onclick="joinByCode()">Conectar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', this)">🏠<small>Início</small></div>
+        <div class="nav-item" onclick="switchTab('extrato', this)">📜<small>Extrato</small></div>
+        <div class="nav-item" onclick="switchTab('vinculo', this)">👥<small>Grupo</small></div>
+    </div>
+
+    <script>
+        let userData = {};
+        let currentMode = 'pessoal';
+        let transUnsubscribe = null;
+        const palavrasEntrada = ['salario', 'pix', 'recebi', 'venda', 'ganhei', 'deposito', 'extra', 'reembolso'];
+
+        // --- AUTH ---
+        auth.onAuthStateChanged(user => {
+            if (user) checkUser(user);
+            else document.getElementById('login-screen').classList.remove('hidden');
+        });
+
+        async function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            if(!e || !p) return;
+            try { await auth.signInWithEmailAndPassword(e, p); }
+            catch { await auth.createUserWithEmailAndPassword(e, p); }
+        }
+
+        async function checkUser(user) {
+            const doc = await db.collection("usuarios").doc(user.uid).get();
+            if (!doc.exists) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('onboarding-screen').classList.remove('hidden');
+            } else {
+                userData = doc.data(); userData.uid = user.uid;
+                startApp();
+            }
+        }
+
+        async function saveNickname() {
+            const n = document.getElementById('nickname').value;
+            if(!n) return;
+            const u = auth.currentUser;
+            await db.collection("usuarios").doc(u.uid).set({ 
+                apelido: n, email: u.email, grupoID: u.uid, isOwner: true 
+            });
+            location.reload();
+        }
+
+        function startApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('onboarding-screen').classList.add('hidden');
+            document.getElementById('side-user-name').innerText = userData.apelido;
+            document.getElementById('side-user-email').innerText = userData.email;
+            listenData();
+        }
+
+        // --- NAVEGAÇÃO E MENUS ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('mainOverlay').classList.toggle('active');
+        }
+
+        function toggleNotifs() {
+            const p = document.getElementById('notifPanel');
+            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('notif-dot').style.display = 'none';
+        }
+
+        function closeAllMenus() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('mainOverlay').classList.remove('active');
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+
+        function switchTab(id, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('page-'+id).classList.add('page-active');
+            if(btn.classList.contains('nav-item')) btn.classList.add('active');
+            else {
+                // Se veio do sidebar, ativa o ícone correspondente na nav inferior
+                const navItems = document.querySelectorAll('.nav-item');
+                if(id === 'home') navItems[0].classList.add('active');
+                if(id === 'extrato') navItems[1].classList.add('active');
+                if(id === 'vinculo') navItems[2].classList.add('active');
+            }
+        }
+
+        // --- LÓGICA DE DADOS ---
+        function changeMode(m) {
+            currentMode = m;
+            document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-'+m).classList.add('active');
+            document.getElementById('label-conta').innerText = m === 'pessoal' ? 'CONTA PESSOAL' : 'CONTA DO GRUPO';
+            listenData();
+        }
+
+        function listenData() {
+            if(transUnsubscribe) transUnsubscribe();
+            let query = db.collection("transacoes");
+            if(currentMode === 'pessoal') query = query.where("pessoalUID", "==", userData.uid);
+            else query = query.where("grupoID", "==", userData.grupoID);
+
+            transUnsubscribe = query.onSnapshot(s => {
+                let total = 0; let lista = [];
+                s.forEach(doc => {
+                    const t = doc.data(); lista.push(t);
+                    t.tipo === 'entrada' ? total += t.valor : total -= t.valor;
+                });
+                renderUI(lista.sort((a,b) => b.data - a.data), total);
+            });
+
+            db.collection("usuarios").where("grupoID", "==", userData.grupoID).onSnapshot(s => {
+                let h = "";
+                s.forEach(doc => {
+                    const u = doc.data();
+                    h += `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span>${u.isOwner ? '👑' : '👤'} ${u.apelido}</span>
+                        ${(userData.isOwner && !u.isOwner) ? `<button onclick="kickM('${doc.id}')" style="color:var(--danger); background:none; border:none; font-size:0.7rem">Remover</button>` : ''}
+                    </div>`;
+                });
+                document.getElementById('members-list').innerHTML = h;
+            });
+        }
+
+        function renderUI(lista, total) {
+            const html = lista.map(i => `
+                <div class="transaction-item">
+                    <div><b>${i.descricao}</b><br><small style="opacity:0.4; font-size:0.6rem">Por ${i.autor}</small></div>
+                    <div style="font-weight:900; color:${i.tipo==='entrada'?'var(--secondary)':'var(--danger)'}">
+                        ${i.tipo==='entrada'?'+':'-'} R$ ${i.valor.toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('listaHome').innerHTML = html.slice(0, 500);
+            document.getElementById('listaExtrato').innerHTML = html;
+            document.getElementById('saldoDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        async function addTransaction() {
+            const d = document.getElementById('desc').value;
+            const v = parseFloat(document.getElementById('valor').value);
+            const tag = document.getElementById('tag-tipo').innerText;
+            if(!d || isNaN(v)) return;
+
+            const dados = {
+                descricao: d, valor: v,
+                tipo: tag.includes("ENTRADA") ? "entrada" : "saida",
+                autor: userData.apelido, data: Date.now()
+            };
+
+            if(currentMode === 'pessoal') dados.pessoalUID = userData.uid;
+            else dados.grupoID = userData.grupoID;
+
+            await db.collection("transacoes").add(dados);
+            addNotif(`Lançamento realizado: ${d}`);
+            document.getElementById('desc').value = ""; document.getElementById('valor').value = "";
+            document.getElementById('tag-tipo').innerText = "";
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
+        }
+
+        function detectType(el) {
+            const isE = palavrasEntrada.some(p => el.value.toLowerCase().includes(p));
+            const tag = document.getElementById('tag-tipo');
+            tag.innerText = isE ? "✨ ENTRADA DETECTADA" : "💸 SAÍDA DETECTADA";
+            tag.style.color = isE ? "var(--secondary)" : "var(--danger)";
+        }
+
+        function addNotif(msg) {
+            const list = document.getElementById('notif-list');
+            document.getElementById('empty-notif').style.display = 'none';
+            const item = document.createElement('div');
+            item.style.padding = "10px 0"; item.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            item.innerHTML = `<b>🔔 Alerta:</b> ${msg}`;
+            list.prepend(item);
+            document.getElementById('notif-dot').style.display = 'block';
+        }
+
+        function clearNotifs() {
+            document.getElementById('notif-list').innerHTML = '<p id="empty-notif" style="opacity: 0.5;">Tudo limpo por aqui! ✨</p>';
+        }
+
+        async function kickM(id) {
+            if(confirm("Expulsar membro?")) {
+                await db.collection("usuarios").doc(id).update({ grupoID: id, isOwner: true });
+                addNotif("Um membro foi removido do grupo.");
+            }
+        }
+
+        async function logout() { await auth.signOut(); location.reload(); }
+
+        function createInviteCode() {
+            const c = Math.random().toString(36).substring(2,8).toUpperCase();
+            document.getElementById('invite-display').innerText = c;
+            db.collection("usuarios").doc(userData.uid).update({ chaveVinculo: c });
+        }
+
+        async function joinByCode() {
+            const c = document.getElementById('code-input').value.toUpperCase();
+            const q = await db.collection("usuarios").where("chaveVinculo", "==", c).get();
+            if(!q.empty) {
+                await db.collection("usuarios").doc(userData.uid).update({ grupoID: q.docs[0].data().grupoID, isOwner: false });
+                addNotif("Você entrou no grupo!");
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+    </script>
+</body>
+</html>
