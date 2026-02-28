@@ -1,291 +1,209 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gems Elite Pro 💎</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alinha - Base Financeira</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0f1117;
+  color:white;
+}
 
-    <style>
-        :root { 
-            --bg: #030712; 
-            --primary: #8b5cf6; 
-            --primary-glow: rgba(139, 92, 246, 0.4);
-            --secondary: #10b981; 
-            --secondary-glow: rgba(16, 185, 129, 0.3);
-            --danger: #ef4444; 
-            --card: rgba(15, 23, 42, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
+.hidden{display:none;}
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+section{padding:20px;}
 
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg); color: white; margin: 0; 
-            height: 100vh; width: 100vw; overflow: hidden; perspective: 1500px;
-        }
+h1,h2,h3{margin-top:0;}
 
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg)); }
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:none;
+}
 
-        #viewport { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+button{
+  background:#4f7cff;
+  color:white;
+  cursor:pointer;
+}
 
-        .page { position: absolute; width: 100vw; height: 100vh; overflow-y: auto; padding: 20px; padding-bottom: 120px; backface-visibility: hidden; }
+.card{
+  background:rgba(255,255,255,0.05);
+  padding:15px;
+  border-radius:12px;
+  margin-top:20px;
+}
 
-        #page-home { transform: rotateY(0deg) translateZ(50vw); }
-        #page-extrato { transform: rotateY(90deg) translateZ(50vw); }
-        #page-vinculo { transform: rotateY(180deg) translateZ(50vw); }
+ul{
+  list-style:none;
+  padding:0;
+}
 
-        .main-card { 
-            background: linear-gradient(135deg, var(--primary), #6366f1);
-            padding: 35px 20px; margin-bottom: 25px; border-radius: 32px; text-align: center;
-            box-shadow: 0 15px 35px var(--primary-glow), inset 0 0 20px rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .glass-form { background: var(--card); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 24px; margin-bottom: 20px; }
-
-        input { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--glass-border); background: rgba(0, 0, 0, 0.3); color: white; font-size: 1rem; margin-bottom: 12px; transition: 0.3s; }
-        input:focus { border-color: var(--primary); }
-
-        .btn-add { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--primary); color: white; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-add:active { transform: scale(0.96); }
-
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 18px; margin: 10px 0; background: rgba(255,255,255,0.03); border-radius: 22px; border: 1px solid var(--glass-border); }
-
-        .nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; height: 75px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 25px; display: flex; align-items: center; justify-content: space-around; border: 1px solid var(--glass-border); z-index: 1000; }
-        .nav-btn { font-size: 1.4rem; opacity: 0.3; cursor: pointer; transition: 0.3s; text-align: center; }
-        .nav-btn.active { opacity: 1; color: var(--primary); transform: translateY(-5px); }
-        .nav-btn small { display: block; font-size: 0.6rem; font-weight: 800; }
-
-        #login-screen, #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .hidden { display: none !important; }
-    </style>
+progress{
+  width:100%;
+  height:12px;
+}
+</style>
 </head>
 <body>
 
-    <canvas id="bg-canvas"></canvas>
+<section id="login-screen">
+  <h1>Alinha</h1>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Senha">
+  <button id="login-btn">Entrar</button>
+  <button id="register-btn">Criar Conta</button>
+</section>
 
-    <div id="login-screen">
-        <div class="glass-form" style="width: 85%; text-align: center;">
-            <h1 style="margin-bottom:25px">Gems Elite 💎</h1>
-            <input type="email" id="email" placeholder="E-mail">
-            <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-add" onclick="login()">Entrar / Criar Conta</button>
-        </div>
-    </div>
+<section id="dashboard" class="hidden">
+  <h2>Painel Futuro</h2>
+  <button id="logout-btn">Sair</button>
 
-    <div id="onboarding-screen" class="hidden">
-        <div class="glass-form" style="width: 85%; text-align: center;">
-            <h2>Bem-vindo! 👋</h2>
-            <input type="text" id="nickname" placeholder="Seu apelido">
-            <button class="btn-add" onclick="saveNickname()">Começar</button>
-        </div>
-    </div>
+  <div class="card">
+    <h3>Adicionar Conta Futura</h3>
+    <input type="text" id="bill-name" placeholder="Nome da Conta">
+    <input type="number" id="bill-value" placeholder="Valor">
+    <input type="date" id="bill-date">
+    <select id="bill-type">
+      <option value="mensal">Mensal</option>
+      <option value="anual">Anual</option>
+      <option value="unica">Única</option>
+    </select>
+    <button id="add-bill">Salvar</button>
+  </div>
 
-    <div id="viewport">
-        <div id="page-home" class="page">
-            <div class="main-card">
-                <p id="welcome-msg" style="opacity:0.8">Carregando...</p>
-                <h1 id="saldoDisplay" style="font-size: 2.8rem; margin: 10px 0;">R$ 0,00</h1>
-                <small style="letter-spacing: 3px; opacity: 0.6;">SALDO ATUAL</small>
-            </div>
-            <div class="glass-form">
-                <input type="text" id="desc" placeholder="O que foi?" oninput="handleInput(this)">
-                <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
-                <div id="tag-tipo" style="height:25px; font-size:0.75rem; font-weight:800; margin-bottom:12px; text-align:center;"></div>
-                <button class="btn-add" onclick="addTransaction()">Lançar Agora 🚀</button>
-            </div>
-            <div id="listaHome"></div>
-        </div>
+  <div class="card">
+    <h3>Próximas Contas</h3>
+    <ul id="future-list"></ul>
+  </div>
 
-        <div id="page-extrato" class="page">
-            <h2 style="padding: 20px 10px;">Extrato 📜</h2>
-            <div id="listaExtrato" style="padding: 0 10px;"></div>
-            <button id="btnLimpar" class="btn-add" onclick="limparExtrato()" style="margin: 20px; width: calc(100% - 40px); background: none; border: 1px solid var(--danger); color: var(--danger);">Limpar Extrato</button>
-        </div>
+  <div class="card">
+    <h3>Cofre de Meta</h3>
+    <input type="text" id="goal-name" placeholder="Nome da Meta">
+    <input type="number" id="goal-target" placeholder="Valor Meta">
+    <input type="number" id="goal-current" placeholder="Valor Atual">
+    <button id="add-goal">Criar Meta</button>
+    <div id="goals-list"></div>
+  </div>
+</section>
 
-        <div id="page-vinculo" class="page">
-            <h2 style="padding: 20px 10px;">Grupo 👥</h2>
-            <div class="glass-form">
-                <div id="members-list"></div>
-                <hr style="opacity:0.1; margin: 20px 0;">
-                <button class="btn-add" onclick="createInviteCode()" style="background:none; border: 1px solid var(--primary);">Gerar Chave</button>
-                <div id="invite-display" style="text-align:center; font-size:1.8rem; margin: 15px 0; color: var(--secondary);"></div>
-                <input type="text" id="code-input" placeholder="Chave de vínculo">
-                <button class="btn-add" onclick="joinByCode()">Vincular</button>
-            </div>
-        </div>
-    </div>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <div class="nav">
-        <div class="nav-btn active" onclick="switchTab(0, this)">🏠<small>Home</small></div>
-        <div class="nav-btn" onclick="switchTab(1, this)">📜<small>Extrato</small></div>
-        <div class="nav-btn" onclick="switchTab(2, this)">👥<small>Grupo</small></div>
-    </div>
+<!-- Seu arquivo de configuração -->
+<script src="firebase-config.js"></script>
 
-    <script>
-        // --- MOTOR DE FUNDO ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function initCanvas() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            particles = [];
-            for(let i=0; i<40; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, d: Math.random()*0.5+0.1 });
-        }
-        function animate() {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "rgba(139, 92, 246, 0.3)";
-            particles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); p.y -= p.d; if(p.y < -10) p.y = canvas.height + 10; });
-            requestAnimationFrame(animate);
-        }
-        window.addEventListener('resize', initCanvas);
-        initCanvas(); animate();
+<!-- App JS -->
+<script>
+const loginScreen = document.getElementById("login-screen");
+const dashboard = document.getElementById("dashboard");
 
-        // --- NAVEGAÇÃO 3D ---
-        let currentTab = 0;
-        function switchTab(index, btn) {
-            currentTab = index;
-            document.getElementById('viewport').style.transform = `rotateY(${index * -90}deg)`;
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-            else document.querySelectorAll('.nav-btn')[index].classList.add('active');
-        }
+const loginBtn = document.getElementById("login-btn");
+const registerBtn = document.getElementById("register-btn");
+const logoutBtn = document.getElementById("logout-btn");
 
-        // --- LÓGICA DE NEGÓCIO (FIREBASE) ---
-        let userData = {};
-        const palavrasEntrada = ['salario', 'salário', 'pix', 'recebi', 'venda', 'ganhei', 'deposito', 'depósito', 'extra', 'bonus', 'bônus', 'frelas', 'freela', 'bico', 'reembolso', 'rendimento', 'ganho'];
+const addBillBtn = document.getElementById("add-bill");
+const futureList = document.getElementById("future-list");
 
-        auth.onAuthStateChanged(user => {
-            if (user) checkUser(user);
-            else document.getElementById('login-screen').classList.remove('hidden');
-        });
+const addGoalBtn = document.getElementById("add-goal");
+const goalsList = document.getElementById("goals-list");
 
-        async function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            if(!email || !pass) return alert("Preencha os campos!");
-            try { await auth.signInWithEmailAndPassword(email, pass); }
-            catch (e) { 
-                try { await auth.createUserWithEmailAndPassword(email, pass); }
-                catch (err) { alert("Erro ao acessar: " + err.message); }
-            }
-        }
+let currentUser = null;
 
-        async function checkUser(user) {
-            const doc = await db.collection("usuarios").doc(user.uid).get();
-            if (!doc.exists) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('onboarding-screen').classList.remove('hidden');
-            } else {
-                userData = doc.data();
-                userData.uid = user.uid;
-                startApp();
-            }
-        }
+// LOGIN
+registerBtn.onclick = async () => {
+  await firebase.auth().createUserWithEmailAndPassword(
+    document.getElementById("email").value,
+    document.getElementById("password").value
+  );
+};
 
-        async function saveNickname() {
-            const nick = document.getElementById('nickname').value;
-            if(!nick) return alert("Digite um apelido");
-            const user = auth.currentUser;
-            const data = { apelido: nick, email: user.email, grupoID: user.uid, isOwner: true };
-            await db.collection("usuarios").doc(user.uid).set(data);
-            location.reload();
-        }
+loginBtn.onclick = async () => {
+  await firebase.auth().signInWithEmailAndPassword(
+    document.getElementById("email").value,
+    document.getElementById("password").value
+  );
+};
 
-        function startApp() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('onboarding-screen').classList.add('hidden');
-            document.getElementById('welcome-msg').innerText = `Olá, ${userData.apelido} 👋`;
-            if(!userData.isOwner) document.getElementById('btnLimpar').classList.add('hidden');
-            listenData();
-        }
+logoutBtn.onclick = async () => {
+  await firebase.auth().signOut();
+};
 
-        function handleInput(el) {
-            const val = el.value.toLowerCase().trim();
-            const tag = document.getElementById('tag-tipo');
-            const isGanho = palavrasEntrada.some(p => val.includes(p));
-            if (val.length > 0) {
-                el.setAttribute('data-tipo', isGanho ? 'entrada' : 'saida');
-                tag.innerText = isGanho ? "✨ ENTRADA DETECTADA" : "💸 SAÍDA DETECTADA";
-                tag.style.color = isGanho ? "var(--secondary)" : "var(--danger)";
-            } else { tag.innerText = ""; el.setAttribute('data-tipo', 'saida'); }
-        }
+// Detecta login
+firebase.auth().onAuthStateChanged(user => {
+  if(user){
+    currentUser = user;
+    loginScreen.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+    loadBills();
+    loadGoals();
+  }else{
+    loginScreen.classList.remove("hidden");
+    dashboard.classList.add("hidden");
+  }
+});
 
-        async function addTransaction() {
-            const descInput = document.getElementById('desc');
-            const valorInput = document.getElementById('valor');
-            const tipo = descInput.getAttribute('data-tipo') || 'saida';
-            const valor = parseFloat(valorInput.value);
-            if(!descInput.value || isNaN(valor)) return alert("Preencha os dados!");
-            try {
-                await db.collection("transacoes").add({
-                    descricao: descInput.value, valor: valor, tipo: tipo,
-                    autor: userData.apelido, grupoID: userData.grupoID, data: Date.now()
-                });
-                descInput.value = ""; valorInput.value = "";
-                document.getElementById('tag-tipo').innerText = "";
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
-            } catch(e) { alert("Erro ao salvar!"); }
-        }
+// CONTAS FUTURAS
+addBillBtn.onclick = async () => {
+  await firebase.firestore().collection("futureBills").add({
+    userId: currentUser.uid,
+    name: document.getElementById("bill-name").value,
+    value: parseFloat(document.getElementById("bill-value").value),
+    date: document.getElementById("bill-date").value,
+    type: document.getElementById("bill-type").value
+  });
+  loadBills();
+};
 
-        function listenData() {
-            db.collection("usuarios").where("grupoID", "==", userData.grupoID).onSnapshot(s => {
-                let h = ""; s.forEach(d => h += `<div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05)">${d.data().apelido} ${d.data().isOwner?'👑':''}</div>`);
-                document.getElementById('members-list').innerHTML = h;
-            });
+async function loadBills(){
+  futureList.innerHTML="";
+  const snapshot = await firebase.firestore().collection("futureBills")
+    .where("userId","==",currentUser.uid).get();
 
-            db.collection("transacoes").where("grupoID", "==", userData.grupoID).onSnapshot(s => {
-                let total = 0; let items = [];
-                s.forEach(d => { const data = d.data(); items.push(data); data.tipo === 'entrada' ? total += data.valor : total -= data.valor; });
-                items.sort((a, b) => b.data - a.data);
-                const render = (arr) => arr.map(i => `<div class="item"><div><b>${i.descricao}</b><br><small style="opacity:0.5">Por ${i.autor}</small></div><div style="font-weight:bold; color:${i.tipo==='entrada'?'var(--secondary)':'var(--danger)'}">${i.tipo==='entrada'?'+':'-'} R$ ${i.valor.toFixed(2)}</div></div>`).join('');
-                document.getElementById('listaHome').innerHTML = render(items.slice(0, 5));
-                document.getElementById('listaExtrato').innerHTML = render(items);
-                document.getElementById('saldoDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            });
-        }
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    const li = document.createElement("li");
+    li.innerHTML = `${data.name} - R$ ${data.value} - ${data.date}`;
+    futureList.appendChild(li);
+  });
+}
 
-        async function limparExtrato() {
-            if(!userData.isOwner || !confirm("Apagar tudo?")) return;
-            const q = await db.collection("transacoes").where("grupoID", "==", userData.grupoID).get();
-            const batch = db.batch();
-            q.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-        }
+// METAS
+addGoalBtn.onclick = async () => {
+  await firebase.firestore().collection("goals").add({
+    userId: currentUser.uid,
+    name: document.getElementById("goal-name").value,
+    target: parseFloat(document.getElementById("goal-target").value),
+    current: parseFloat(document.getElementById("goal-current").value)
+  });
+  loadGoals();
+};
 
-        function createInviteCode() {
-            const c = Math.random().toString(36).substring(2,8).toUpperCase();
-            document.getElementById('invite-display').innerText = c;
-            db.collection("usuarios").doc(userData.uid).update({ chaveVinculo: c });
-        }
+async function loadGoals(){
+  goalsList.innerHTML="";
+  const snapshot = await firebase.firestore().collection("goals")
+    .where("userId","==",currentUser.uid).get();
 
-        async function joinByCode() {
-            const c = document.getElementById('code-input').value.toUpperCase();
-            if(!c) return;
-            const q = await db.collection("usuarios").where("chaveVinculo", "==", c).get();
-            if(!q.empty) {
-                await db.collection("usuarios").doc(userData.uid).update({ grupoID: q.docs[0].data().grupoID, isOwner: false });
-                location.reload();
-            } else { alert("Chave inválida!"); }
-        }
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    const percent = ((data.current/data.target)*100).toFixed(1);
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <p>${data.name}</p>
+      <p>${percent}% concluído</p>
+      <progress value="${data.current}" max="${data.target}"></progress>
+    `;
+    goalsList.appendChild(div);
+  });
+}
+</script>
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const act = document.activeElement;
-                if (act.id === 'email' || act.id === 'pass') login();
-                else if (act.id === 'desc' || act.id === 'valor') addTransaction();
-                else if (act.id === 'code-input') joinByCode();
-                else if (act.id === 'nickname') saveNickname();
-            }
-        });
-    </script>
 </body>
 </html>
