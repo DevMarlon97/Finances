@@ -20,8 +20,9 @@
             --secondary: #10b981; 
             --secondary-glow: rgba(16, 185, 129, 0.3);
             --danger: #ef4444; 
-            --card: rgba(15, 23, 42, 0.5);
+            --card: rgba(15, 23, 42, 0.6);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-accent: #00f2ff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -29,34 +30,31 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--bg); 
+            background-image: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg));
             color: white; margin: 0; height: 100vh; width: 100vw;
             overflow: hidden; perspective: 1500px;
         }
 
-        /* Camada de Partículas */
-        #bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg));
-        }
-
-        /* 3D Carousel */
+        /* 3D Carousel Logic */
         #viewport {
             width: 100%; height: 100%;
             position: relative; transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .page { 
             position: absolute; width: 100vw; height: 100vh; 
             overflow-y: auto; padding: 20px; padding-bottom: 120px;
             backface-visibility: hidden;
+            transition: opacity 0.5s;
         }
 
+        /* Cubo Positions: 0, 1, 2 (Faces) */
         #page-home { transform: rotateY(0deg) translateZ(50vw); }
         #page-extrato { transform: rotateY(90deg) translateZ(50vw); }
         #page-vinculo { transform: rotateY(180deg) translateZ(50vw); }
 
-        /* UI Elements */
+        /* Glassmorphism & Neon */
         .main-card { 
             background: linear-gradient(135deg, var(--primary), #6366f1);
             padding: 35px 20px; margin-bottom: 25px; border-radius: 32px; text-align: center;
@@ -68,50 +66,61 @@
             background: var(--card); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border); border-radius: 28px; 
             padding: 24px; margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
 
         input { 
             width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--glass-border); 
             background: rgba(0, 0, 0, 0.3); color: white; font-size: 1rem;
-            outline: none; margin-bottom: 12px;
+            outline: none; margin-bottom: 12px; transition: 0.3s;
         }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
 
         .btn-add { 
             width: 100%; padding: 18px; border-radius: 18px; border: none; 
             background: var(--primary); color: white; font-weight: 800; cursor: pointer;
-            transition: 0.3s; text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 15px var(--primary-glow);
         }
+
+        .btn-add:active { transform: scale(0.95); }
 
         .item { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 18px; margin: 10px 0; background: rgba(255,255,255,0.03); 
             border-radius: 22px; border: 1px solid var(--glass-border);
+            animation: slideIn 0.4s ease-out forwards;
         }
 
-        /* Nav Bar */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Navigation */
         .nav { 
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); 
             width: 85%; height: 75px; background: rgba(15, 23, 42, 0.85); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 25px; 
             display: flex; align-items: center; justify-content: space-around;
             border: 1px solid var(--glass-border); z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        .nav-btn { font-size: 1.4rem; opacity: 0.3; cursor: pointer; transition: 0.3s; }
-        .nav-btn.active { opacity: 1; color: var(--primary); transform: translateY(-5px); }
-        .nav-btn small { display: block; font-size: 0.6rem; font-weight: 800; }
+        .nav-btn { font-size: 1.4rem; opacity: 0.3; cursor: pointer; text-align: center; transition: 0.3s; }
+        .nav-btn.active { opacity: 1; color: var(--primary); transform: translateY(-5px); text-shadow: 0 0 10px var(--primary-glow); }
+        .nav-btn small { display: block; font-size: 0.6rem; font-weight: 800; margin-top: 4px; text-transform: uppercase; }
 
-        #login-screen, #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        #login-screen, #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        
         .hidden { display: none !important; }
+        .neon-text { text-shadow: 0 0 10px var(--secondary-glow); }
     </style>
 </head>
 <body>
 
-    <canvas id="bg-canvas"></canvas>
-
     <div id="login-screen">
         <div class="glass-form" style="width: 85%; text-align: center;">
-            <h1 style="margin-bottom:25px">Gems Elite 💎</h1>
+            <h1 style="margin-bottom:25px; font-weight: 800;">Gems Elite 💎</h1>
             <input type="email" id="email" placeholder="E-mail">
             <input type="password" id="pass" placeholder="Senha">
             <button class="btn-add" onclick="login()">Entrar / Criar Conta</button>
@@ -121,44 +130,70 @@
     <div id="onboarding-screen" class="hidden">
         <div class="glass-form" style="width: 85%; text-align: center;">
             <h2>Bem-vindo! 👋</h2>
+            <p style="opacity: 0.7;">Como quer ser chamado?</p>
             <input type="text" id="nickname" placeholder="Seu apelido">
             <button class="btn-add" onclick="saveNickname()">Começar</button>
         </div>
     </div>
 
     <div id="viewport">
+        
         <div id="page-home" class="page">
             <div class="main-card">
-                <p id="welcome-msg" style="opacity:0.8">Carregando...</p>
-                <h1 id="saldoDisplay" style="font-size: 2.8rem; margin: 10px 0;">R$ 0,00</h1>
-                <small style="letter-spacing: 3px; opacity: 0.6;">SALDO ATUAL</small>
+                <p id="welcome-msg" style="opacity:0.9; font-weight: 300;">Carregando...</p>
+                <h1 id="saldoDisplay" style="font-size: 2.8rem; margin: 10px 0; font-weight: 800;">R$ 0,00</h1>
+                <small style="letter-spacing: 3px; opacity: 0.6; font-weight: 800;">SALDO ATUAL</small>
             </div>
+
             <div class="glass-form">
-                <input type="text" id="desc" placeholder="O que foi?" oninput="handleInput(this)">
-                <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
-                <div id="tag-tipo" style="height:25px; font-size:0.75rem; font-weight:800; margin-bottom:12px; text-align:center;"></div>
-                <button class="btn-add" onclick="addTransaction()">Lançar Agora 🚀</button>
+                <input type="text" id="desc" placeholder="O que foi? (ex: Salário)" oninput="handleInput(this)" autocomplete="off">
+                <input type="number" id="valor" placeholder="Valor R$ 0,00" step="0.01">
+                <div id="tag-tipo" style="height:25px; font-size:0.75rem; font-weight:800; margin-bottom:12px; text-align:center; transition: 0.3s;"></div>
+                <button class="btn-add" onclick="addTransaction()" id="btn-submit-home">Lançar Agora 🚀</button>
             </div>
-            <div id="listaHome"></div>
+
+            <div style="padding: 10px;">
+                <p style="font-size: 0.75rem; font-weight: 800; opacity: 0.4; margin-bottom: 15px; letter-spacing: 1px;">MOVIMENTAÇÕES RECENTES</p>
+                <div id="listaHome"></div>
+            </div>
         </div>
 
         <div id="page-extrato" class="page">
-            <h2 style="padding: 20px 10px;">Extrato 📜</h2>
-            <div id="listaExtrato" style="padding: 0 10px;"></div>
-            <button id="btnLimpar" class="btn-add" onclick="limparExtrato()" style="margin: 20px; width: calc(100% - 40px); background: none; border: 1px solid var(--danger); color: var(--danger);">Limpar Extrato</button>
+            <div style="padding: 20px 10px;">
+                <h2 style="margin-bottom: 5px; font-weight: 800;">Extrato 📜</h2>
+                <p style="opacity:0.5; font-size:0.85rem; margin-bottom:25px;">Histórico compartilhado em tempo real</p>
+                
+                <div id="listaExtrato"></div>
+
+                <button id="btnLimpar" class="btn-add" onclick="limparExtrato()" style="margin-top:40px; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); color:var(--danger); font-size:0.8rem; box-shadow: none;">
+                    🗑️ Limpar Todo o Extrato
+                </button>
+            </div>
         </div>
 
         <div id="page-vinculo" class="page">
-            <h2 style="padding: 20px 10px;">Grupo 👥</h2>
-            <div class="glass-form">
-                <div id="members-list"></div>
-                <hr style="opacity:0.1; margin: 20px 0;">
-                <button class="btn-add" onclick="createInviteCode()" style="background:none; border: 1px solid var(--primary);">Gerar Chave</button>
-                <div id="invite-display" style="text-align:center; font-size:1.8rem; margin: 15px 0; color: var(--secondary);"></div>
-                <input type="text" id="code-input" placeholder="Chave de vínculo">
-                <button class="btn-add" onclick="joinByCode()">Vincular</button>
+            <div style="padding: 20px 10px;">
+                <h2 style="margin-bottom: 20px; font-weight: 800;">Meu Grupo 👥</h2>
+                
+                <div class="glass-form">
+                    <p style="font-size:0.7rem; font-weight:800; opacity:0.5; margin-bottom:15px; letter-spacing:1px;">MEMBROS ATIVOS</p>
+                    <div id="members-list"></div>
+                </div>
+
+                <div class="glass-form">
+                    <p style="font-size:0.7rem; font-weight:800; opacity:0.5; margin-bottom:15px; letter-spacing:1px;">CONVIDAR PARCEIRO</p>
+                    <button class="btn-add" onclick="createInviteCode()" style="background:none; border:1px solid var(--primary); margin-bottom:15px; box-shadow:none">Gerar Nova Chave</button>
+                    <div id="invite-display" style="text-align:center; font-size:1.8rem; font-weight:800; color:var(--secondary); text-shadow: 0 0 15px var(--secondary-glow);"></div>
+                    
+                    <hr style="opacity:0.05; margin:25px 0">
+                    
+                    <p style="font-size:0.7rem; font-weight:800; opacity:0.5; margin-bottom:15px; letter-spacing:1px;">ENTRAR EM UM GRUPO</p>
+                    <input type="text" id="code-input" placeholder="Cole a chave aqui">
+                    <button class="btn-add" onclick="joinByCode()" id="btn-submit-vinculo">Vincular Conta</button>
+                </div>
             </div>
         </div>
+
     </div>
 
     <div class="nav">
@@ -168,50 +203,188 @@
     </div>
 
     <script>
-        // --- MOTOR DE PARTÍCULAS ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function initCanvas() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            for(let i=0; i<50; i++) particles.push({
-                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                r: Math.random() * 2 + 1, d: Math.random() * 0.5 + 0.1
-            });
-        }
-        function animate() {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "rgba(139, 92, 246, 0.3)";
-            particles.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-                p.y -= p.d; if(p.y < -10) p.y = canvas.height + 10;
-            });
-            requestAnimationFrame(animate);
-        }
-        initCanvas(); animate();
-
-        // --- NAVEGAÇÃO 3D ---
+        let userData = {};
         let currentTab = 0;
+        const palavrasEntrada = ['salario', 'salário', 'pix', 'recebi', 'venda', 'ganhei', 'deposito', 'depósito', 'extra', 'bonus', 'bônus', 'frelas', 'freela', 'bico', 'reembolso', 'rendimento', 'ganho'];
+
+        // --- LÓGICA DE NAVEGAÇÃO 3D ---
         function switchTab(index, btn) {
             currentTab = index;
-            document.getElementById('viewport').style.transform = `rotateY(${index * -90}deg)`;
+            const viewport = document.getElementById('viewport');
+            const rotation = index * -90;
+            viewport.style.transform = `rotateY(${rotation}deg)`;
+
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             if(btn) btn.classList.add('active');
             else document.querySelectorAll('.nav-btn')[index].classList.add('active');
         }
 
-        // --- LÓGICA FIREBASE (Sua lógica original preservada) ---
-        // [O script continua igual ao anterior, integrando as funções de login, addTransaction, etc.]
-        // Reutilize as funções 'login', 'checkUser', 'saveNickname', 'handleInput', 'addTransaction', 'listenData' do código anterior.
-        
-        // Suporte para Enter
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const active = document.activeElement;
-                if (active.id === 'desc' || active.id === 'valor') addTransaction();
-                if (active.id === 'email' || active.id === 'pass') login();
+        // Swipe e Scroll lateral
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+        document.addEventListener('touchend', e => {
+            let diff = touchStartX - e.changedTouches[0].screenX;
+            if (Math.abs(diff) > 80) {
+                if (diff > 0 && currentTab < 2) switchTab(currentTab + 1);
+                if (diff < 0 && currentTab > 0) switchTab(currentTab - 1);
             }
         });
+
+        // --- INTERAÇÃO INTELIGENTE (ENTER) ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const activeId = document.activeElement.id;
+                if (activeId === 'email' || activeId === 'pass') login();
+                if (activeId === 'desc' || activeId === 'valor') addTransaction();
+                if (activeId === 'code-input') joinByCode();
+                if (activeId === 'nickname') saveNickname();
+            }
+        });
+
+        // --- LÓGICA ORIGINAL DO FIREBASE (PRESERVADA) ---
+        auth.onAuthStateChanged(user => {
+            if (user) checkUser(user);
+            else document.getElementById('login-screen').classList.remove('hidden');
+        });
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            if(!email || !pass) return alert("Preencha os campos!");
+            try { await auth.signInWithEmailAndPassword(email, pass); }
+            catch (e) { 
+                try { await auth.createUserWithEmailAndPassword(email, pass); }
+                catch (err) { alert("Erro ao acessar conta."); }
+            }
+        }
+
+        async function checkUser(user) {
+            const doc = await db.collection("usuarios").doc(user.uid).get();
+            if (!doc.exists) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('onboarding-screen').classList.remove('hidden');
+            } else {
+                userData = doc.data();
+                userData.uid = user.uid;
+                startApp();
+            }
+        }
+
+        async function saveNickname() {
+            const nick = document.getElementById('nickname').value;
+            if(!nick) return alert("Digite um apelido");
+            const user = auth.currentUser;
+            const data = { apelido: nick, email: user.email, grupoID: user.uid, isOwner: true };
+            await db.collection("usuarios").doc(user.uid).set(data);
+            location.reload();
+        }
+
+        function startApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('onboarding-screen').classList.add('hidden');
+            document.getElementById('welcome-msg').innerText = `Olá, ${userData.apelido} 👋`;
+            if(!userData.isOwner) document.getElementById('btnLimpar').classList.add('hidden');
+            listenData();
+        }
+
+        function handleInput(el) {
+            const val = el.value.toLowerCase().trim();
+            const tag = document.getElementById('tag-tipo');
+            const isGanho = palavrasEntrada.some(p => val.includes(p));
+
+            if (val.length > 0) {
+                el.setAttribute('data-tipo', isGanho ? 'entrada' : 'saida');
+                tag.innerText = isGanho ? "✨ ENTRADA DETECTADA" : "💸 SAÍDA DETECTADA";
+                tag.style.color = isGanho ? "var(--secondary)" : "var(--danger)";
+            } else {
+                tag.innerText = "";
+                el.setAttribute('data-tipo', 'saida');
+            }
+        }
+
+        async function addTransaction() {
+            const descInput = document.getElementById('desc');
+            const valorInput = document.getElementById('valor');
+            const tipo = descInput.getAttribute('data-tipo') || 'saida';
+            const valor = parseFloat(valorInput.value);
+
+            if(!descInput.value || isNaN(valor)) return alert("Preencha os dados!");
+
+            try {
+                await db.collection("transacoes").add({
+                    descricao: descInput.value,
+                    valor: valor,
+                    tipo: tipo,
+                    autor: userData.apelido,
+                    grupoID: userData.grupoID,
+                    data: Date.now()
+                });
+                
+                descInput.value = ""; valorInput.value = "";
+                descInput.setAttribute('data-tipo', 'saida');
+                document.getElementById('tag-tipo').innerText = "";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
+            } catch(e) { alert("Erro ao salvar!"); }
+        }
+
+        function listenData() {
+            db.collection("usuarios").where("grupoID", "==", userData.grupoID).onSnapshot(s => {
+                let h = ""; 
+                s.forEach(d => h += `<div style="padding:15px; border-bottom:1px solid rgba(255,255,255,0.05); font-weight:600">${d.data().apelido} ${d.data().isOwner?'👑':''}</div>`);
+                document.getElementById('members-list').innerHTML = h;
+            });
+
+            db.collection("transacoes").where("grupoID", "==", userData.grupoID).onSnapshot(s => {
+                let total = 0; let items = [];
+                s.forEach(d => {
+                    const data = d.data();
+                    items.push(data);
+                    data.tipo === 'entrada' ? total += data.valor : total -= data.valor;
+                });
+                
+                items.sort((a, b) => b.data - a.data);
+
+                const render = (arr) => arr.map(i => `
+                    <div class="item">
+                        <div><b style="font-size:0.95rem">${i.descricao}</b><br><small style="opacity:0.4; font-size:0.7rem">Por ${i.autor}</small></div>
+                        <div style="font-weight:800; color:${i.tipo==='entrada'?'var(--secondary)':'var(--danger)'}">
+                            ${i.tipo==='entrada'?'+':'-'} R$ ${i.valor.toFixed(2)}
+                        </div>
+                    </div>`).join('');
+
+                document.getElementById('listaHome').innerHTML = render(items.slice(0, 5));
+                document.getElementById('listaExtrato').innerHTML = render(items);
+                document.getElementById('saldoDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            });
+        }
+
+        async function limparExtrato() {
+            if(!userData.isOwner) return;
+            if(!confirm("Deseja apagar TODO o extrato do grupo?")) return;
+            const q = await db.collection("transacoes").where("grupoID", "==", userData.grupoID).get();
+            const batch = db.batch();
+            q.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        }
+
+        function createInviteCode() {
+            const c = Math.random().toString(36).substring(2,8).toUpperCase();
+            document.getElementById('invite-display').innerText = c;
+            db.collection("usuarios").doc(userData.uid).update({ chaveVinculo: c });
+        }
+
+        async function joinByCode() {
+            const c = document.getElementById('code-input').value.toUpperCase();
+            if(!c) return;
+            const q = await db.collection("usuarios").where("chaveVinculo", "==", c).get();
+            if(!q.empty) {
+                await db.collection("usuarios").doc(userData.uid).update({ 
+                    grupoID: q.docs[0].data().grupoID, 
+                    isOwner: false 
+                });
+                location.reload();
+            } else { alert("Chave inválida!"); }
+        }
     </script>
 </body>
 </html>
