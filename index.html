@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Financeiro</title>
+<title>FinControl Premium</title>
 
 <style>
 
-/* ===================== ROOT ===================== */
+/* ================= ROOT ================= */
 
 :root{
-    --bg:#0f172a;
+    --bg:#0b1120;
     --card:rgba(255,255,255,0.06);
     --glass:rgba(255,255,255,0.08);
-    --primary:#00f5ff;
+    --primary:#00e5ff;
     --secondary:#7c3aed;
-    --danger:#ff4d4d;
     --success:#22c55e;
+    --danger:#ef4444;
     --text:#f1f5f9;
 }
 
@@ -24,55 +24,53 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 body{
-    background:linear-gradient(135deg,#0f172a,#111827);
+    background:linear-gradient(145deg,#0b1120,#111827);
     color:var(--text);
     overflow:hidden;
 }
 
-/* ===================== HEADER ===================== */
+/* ================= HEADER ================= */
 
 .header{
     position:fixed;
     top:0;
-    left:0;
     width:100%;
     height:70px;
     display:flex;
     align-items:center;
     justify-content:space-between;
     padding:0 20px;
-    backdrop-filter:blur(15px);
+    backdrop-filter:blur(20px);
     background:var(--glass);
     border-bottom:1px solid rgba(255,255,255,0.1);
     z-index:1000;
 }
 
 .logo{
-    font-size:20px;
     font-weight:bold;
-    text-shadow:0 0 8px var(--primary);
+    font-size:20px;
+    text-shadow:0 0 10px var(--primary);
 }
 
 .hamburger{
-    cursor:pointer;
     font-size:24px;
+    cursor:pointer;
 }
 
-/* ===================== SIDEBAR ===================== */
+/* ================= SIDEBAR ================= */
 
 .sidebar{
     position:fixed;
-    top:0;
     left:-260px;
+    top:0;
     width:250px;
     height:100vh;
-    backdrop-filter:blur(20px);
-    background:rgba(15,23,42,0.8);
-    border-right:1px solid rgba(255,255,255,0.1);
+    backdrop-filter:blur(25px);
+    background:rgba(10,15,30,0.9);
     transition:0.4s;
     padding-top:90px;
     z-index:1200;
@@ -85,8 +83,8 @@ body{
 .sidebar a{
     display:block;
     padding:15px 20px;
-    text-decoration:none;
     color:var(--text);
+    text-decoration:none;
     transition:0.3s;
 }
 
@@ -95,30 +93,39 @@ body{
     color:#000;
 }
 
-/* ===================== CARROSSEL ===================== */
+/* ================= CARROSSEL 3D ================= */
 
-.pages-wrapper{
-    display:flex;
+.carousel{
+    perspective:1200px;
+    width:100%;
     height:100vh;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x mandatory;
-    scroll-behavior:smooth;
+    position:relative;
+    overflow:hidden;
 }
 
-.pages-wrapper::-webkit-scrollbar{
-    display:none;
+.carousel-track{
+    width:100%;
+    height:100%;
+    position:absolute;
+    transform-style:preserve-3d;
+    transition:transform 0.8s cubic-bezier(.77,0,.18,1);
 }
 
 .page{
-    flex:0 0 100%;
+    position:absolute;
+    width:100%;
     height:100vh;
+    padding:100px 20px 120px;
+    backface-visibility:hidden;
     overflow-y:auto;
-    padding:90px 20px 120px;
-    scroll-snap-align:start;
 }
 
-/* ===================== CARD ===================== */
+.page:nth-child(1){ transform:rotateY(0deg) translateZ(400px); }
+.page:nth-child(2){ transform:rotateY(90deg) translateZ(400px); }
+.page:nth-child(3){ transform:rotateY(180deg) translateZ(400px); }
+.page:nth-child(4){ transform:rotateY(-90deg) translateZ(400px); }
+
+/* ================= CARD ================= */
 
 .card{
     background:var(--card);
@@ -127,77 +134,46 @@ body{
     border-radius:20px;
     padding:20px;
     margin-bottom:20px;
-    box-shadow:0 0 15px rgba(0,245,255,0.2);
+    box-shadow:0 0 20px rgba(0,229,255,0.2);
     transition:0.3s;
 }
 
 .card:hover{
-    transform:translateY(-5px);
-    box-shadow:0 0 25px rgba(0,245,255,0.4);
+    transform:translateY(-6px);
+    box-shadow:0 0 30px rgba(0,229,255,0.4);
 }
 
-/* ===================== EXTRATO ===================== */
+/* ================= EXTRATO ================= */
 
 .transaction{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:15px;
+    padding:14px;
     border-bottom:1px solid rgba(255,255,255,0.05);
-}
-
-.transaction:last-child{
-    border-bottom:none;
 }
 
 .transaction .left{
     display:flex;
-    align-items:center;
     gap:10px;
+    align-items:center;
 }
 
 .icon{
-    font-size:18px;
+    font-size:20px;
 }
 
-.amount{
-    font-weight:bold;
-}
+.amount.in{ color:var(--success); font-weight:bold; }
+.amount.out{ color:var(--danger); font-weight:bold; }
 
-.amount.in{
-    color:var(--success);
-}
-
-.amount.out{
-    color:var(--danger);
-}
-
-/* ===================== BOTÃO ===================== */
-
-button{
-    padding:10px 20px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    background:var(--primary);
-    color:#000;
-    font-weight:bold;
-    transition:0.3s;
-}
-
-button:hover{
-    box-shadow:0 0 15px var(--primary);
-}
-
-/* ===================== NAV ===================== */
+/* ================= NAV ================= */
 
 .bottom-nav{
     position:fixed;
     bottom:0;
-    left:0;
     width:100%;
     height:70px;
-    backdrop-filter:blur(15px);
+    backdrop-filter:blur(20px);
     background:var(--glass);
     display:flex;
     justify-content:space-around;
@@ -207,13 +183,30 @@ button:hover{
 
 .nav-item{
     cursor:pointer;
-    font-size:14px;
     transition:0.3s;
 }
 
 .nav-item.active{
     color:var(--primary);
-    text-shadow:0 0 8px var(--primary);
+    text-shadow:0 0 10px var(--primary);
+}
+
+/* ================= NOTIFICAÇÃO ================= */
+
+.toast{
+    position:fixed;
+    top:90px;
+    right:20px;
+    background:var(--secondary);
+    padding:15px 20px;
+    border-radius:12px;
+    box-shadow:0 0 15px var(--secondary);
+    animation:fadeIn 0.5s;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(-20px);}
+    to{opacity:1;}
 }
 
 </style>
@@ -227,122 +220,113 @@ button:hover{
 </div>
 
 <div class="sidebar" id="sidebar">
-    <a href="#" onclick="switchTab('home')">Início</a>
-    <a href="#" onclick="switchTab('extrato')">Extrato</a>
-    <a href="#" onclick="switchTab('grupos')">Grupos</a>
-    <a href="#" onclick="switchTab('vinculo')">Vincular</a>
+    <a onclick="goTo(0)">Início</a>
+    <a onclick="goTo(1)">Extrato</a>
+    <a onclick="goTo(2)">Grupos</a>
+    <a onclick="goTo(3)">Vincular</a>
 </div>
 
-<div class="pages-wrapper" id="pagesWrapper">
+<div class="carousel">
+    <div class="carousel-track" id="track">
 
-<div id="page-home" class="page">
-    <div class="card">
-        <h2>Saldo Atual</h2>
-        <h1>R$ 5.320,00</h1>
-    </div>
-
-    <div class="card">
-        <h3>Resumo Mensal</h3>
-        <p>Receitas: R$ 8.000</p>
-        <p>Despesas: R$ 2.680</p>
-    </div>
-</div>
-
-<div id="page-extrato" class="page">
-    <div class="card">
-        <h2>Extrato</h2>
-
-        <div class="transaction">
-            <div class="left">
-                <div class="icon">💼</div>
-                <div>Salário</div>
+        <div class="page">
+            <div class="card">
+                <h2>Saldo Atual</h2>
+                <h1>R$ 5.320,00</h1>
             </div>
-            <div class="amount in">+ R$ 5.000</div>
         </div>
 
-        <div class="transaction">
-            <div class="left">
-                <div class="icon">🍔</div>
-                <div>Alimentação</div>
+        <div class="page">
+            <div class="card">
+                <h2>Extrato</h2>
+
+                <div class="transaction">
+                    <div class="left">
+                        <div class="icon">💼</div>
+                        <div>Salário</div>
+                    </div>
+                    <div class="amount in">+ R$ 5.000</div>
+                </div>
+
+                <div class="transaction">
+                    <div class="left">
+                        <div class="icon">🍔</div>
+                        <div>Alimentação</div>
+                    </div>
+                    <div class="amount out">- R$ 120</div>
+                </div>
+
             </div>
-            <div class="amount out">- R$ 120</div>
+        </div>
+
+        <div class="page">
+            <div class="card">
+                <h2>Grupos</h2>
+                <button onclick="showToast('Grupo criado com sucesso!')">Criar Grupo</button>
+            </div>
+        </div>
+
+        <div class="page">
+            <div class="card">
+                <h2>Vincular Conta</h2>
+                <button onclick="showToast('Conta vinculada!')">Adicionar</button>
+            </div>
         </div>
 
     </div>
-</div>
-
-<div id="page-grupos" class="page">
-    <div class="card">
-        <h2>Grupos</h2>
-        <p>Nenhum grupo criado ainda.</p>
-        <button onclick="alert('Criar grupo em breve')">Criar Grupo</button>
-    </div>
-</div>
-
-<div id="page-vinculo" class="page">
-    <div class="card">
-        <h2>Vincular Conta</h2>
-        <button>Adicionar Conta</button>
-    </div>
-</div>
-
 </div>
 
 <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('home',this)">Início</div>
-    <div class="nav-item" onclick="switchTab('extrato',this)">Extrato</div>
-    <div class="nav-item" onclick="switchTab('grupos',this)">Grupos</div>
-    <div class="nav-item" onclick="switchTab('vinculo',this)">Vincular</div>
+    <div class="nav-item active" onclick="goTo(0)">Início</div>
+    <div class="nav-item" onclick="goTo(1)">Extrato</div>
+    <div class="nav-item" onclick="goTo(2)">Grupos</div>
+    <div class="nav-item" onclick="goTo(3)">Vincular</div>
 </div>
 
 <script>
 
-/* ===================== MENU ===================== */
+let current = 0;
+const track = document.getElementById('track');
+
+function goTo(index){
+    current = index;
+    track.style.transform = `rotateY(-${index*90}deg)`;
+    document.querySelectorAll('.nav-item')
+        .forEach((i,idx)=>i.classList.toggle('active',idx===index));
+    document.getElementById('sidebar').classList.remove('active');
+}
 
 function toggleMenu(){
     document.getElementById('sidebar').classList.toggle('active');
 }
 
-/* ===================== SWITCH TAB ===================== */
+/* SWIPE MOBILE */
 
-function switchTab(id,btn){
+let startX = 0;
+document.addEventListener("touchstart",e=> startX=e.touches[0].clientX);
 
-    const wrapper = document.getElementById('pagesWrapper');
-    const page = document.getElementById('page-'+id);
-
-    wrapper.scrollTo({
-        left: page.offsetLeft,
-        behavior:'smooth'
-    });
-
-    document.querySelectorAll('.nav-item')
-        .forEach(i=>i.classList.remove('active'));
-
-    if(btn){
-        btn.classList.add('active');
-    }
-
-    document.getElementById('sidebar').classList.remove('active');
-}
-
-/* ===================== SCROLL ATIVA NAV ===================== */
-
-const wrapper = document.getElementById('pagesWrapper');
-
-wrapper.addEventListener('scroll',()=>{
-
-    const pages = document.querySelectorAll('.page');
-    const navItems = document.querySelectorAll('.nav-item');
-
-    pages.forEach((page,index)=>{
-        const rect = page.getBoundingClientRect();
-        if(rect.left >=0 && rect.left < window.innerWidth/2){
-            navItems.forEach(i=>i.classList.remove('active'));
-            navItems[index].classList.add('active');
-        }
-    });
-
+document.addEventListener("touchend",e=>{
+    let diff = e.changedTouches[0].clientX - startX;
+    if(diff > 50 && current>0) goTo(current-1);
+    if(diff < -50 && current<3) goTo(current+1);
 });
+
+/* SCROLL DESKTOP */
+
+document.addEventListener("wheel",e=>{
+    if(e.deltaY>0 && current<3) goTo(current+1);
+    if(e.deltaY<0 && current>0) goTo(current-1);
+});
+
+/* TOAST */
+
+function showToast(msg){
+    const toast = document.createElement("div");
+    toast.className="toast";
+    toast.innerText=msg;
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),2500);
+}
 
 </script>
 
