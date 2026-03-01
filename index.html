@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nova Era | Financeiro Premium</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
@@ -12,10 +19,10 @@
             --primary: #a855f7;
             --primary-dark: #7e22ce;
             --bg: #030303;
-            --card-bg: rgba(18, 18, 23, 0.7);
+            --card-bg: rgba(18, 18, 23, 0.85);
             --text: #f8fafc;
             --text-dim: #94a3b8;
-            --glow: 0 0 15px rgba(168, 85, 247, 0.4);
+            --glow: 0 0 20px rgba(168, 85, 247, 0.3);
             --success: #22c55e;
             --danger: #ef4444;
         }
@@ -23,238 +30,144 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 
-        /* --- AUTH SCREEN --- */
+        /* --- TELA DE LOGIN --- */
         #auth-screen {
             position: fixed; inset: 0; z-index: 9999; background: var(--bg);
             display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.5s ease;
         }
         .auth-card {
-            background: var(--card-bg); padding: 40px; border-radius: 28px;
+            background: var(--card-bg); padding: 40px; border-radius: 30px;
             border: 1px solid rgba(168, 85, 247, 0.2); backdrop-filter: blur(20px);
-            width: 90%; max-width: 400px; text-align: center;
-            box-shadow: var(--glow);
+            width: 90%; max-width: 380px; text-align: center; box-shadow: var(--glow);
         }
-        .auth-card h2 { margin-bottom: 25px; font-weight: 800; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
+        .auth-card h2 { margin-bottom: 25px; font-weight: 800; color: #fff; }
         input {
-            width: 100%; padding: 14px; margin: 8px 0; border-radius: 14px;
-            border: 1px solid #1e1e26; background: #0a0a0c; color: white; outline: none; transition: 0.3s;
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
+            border: 1px solid #1e1e26; background: #000; color: white; outline: none;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
-
         .btn-premium {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white; border: none; padding: 16px; width: 100%; font-size: 16px;
-            border-radius: 14px; cursor: pointer; font-weight: 600; margin-top: 15px;
-            box-shadow: var(--glow); transition: 0.3s;
+            color: white; border: none; padding: 16px; width: 100%; border-radius: 12px;
+            cursor: pointer; font-weight: 600; margin-top: 15px; box-shadow: var(--glow);
         }
-        .btn-premium:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-premium:disabled { opacity: 0.6; cursor: not-allowed; }
+        #error-msg { color: var(--danger); font-size: 13px; margin-top: 15px; display: none; }
 
-        #auth-error { color: var(--danger); font-size: 13px; margin-top: 15px; display: none; }
-
-        /* --- APP CONTENT & SIDEBAR --- */
+        /* --- LAYOUT 3D --- */
         #app-content { display: none; }
+        .menu-trigger { position: fixed; top: 25px; left: 25px; z-index: 1000; cursor: pointer; font-size: 24px; color: var(--primary); }
         
-        .menu-trigger { position: fixed; top: 25px; left: 25px; z-index: 1000; cursor: pointer; padding: 10px; border-radius: 10px; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.05); }
-
         .sidebar {
             position: fixed; top: 0; left: -300px; width: 280px; height: 100%;
-            background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(30px);
-            z-index: 1001; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 80px 20px; border-right: 1px solid rgba(168, 85, 247, 0.1);
+            background: rgba(10, 10, 15, 0.98); z-index: 1001; transition: 0.4s;
+            padding: 80px 20px; border-right: 1px solid var(--primary-dark);
         }
-        .sidebar.active { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
-        .sidebar-item { padding: 15px; margin: 8px 0; border-radius: 12px; cursor: pointer; color: var(--text-dim); transition: 0.3s; display: flex; align-items: center; gap: 12px; }
-        .sidebar-item:hover { background: rgba(168, 85, 247, 0.1); color: var(--primary); }
+        .sidebar.active { left: 0; }
 
-        /* --- 3D ENGINE --- */
-        .scene { width: 100vw; height: 100vh; perspective: 2500px; display: flex; justify-content: center; align-items: center; }
-        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .scene { width: 100vw; height: 100vh; perspective: 2000px; display: flex; justify-content: center; align-items: center; }
+        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
         
-        .face { 
-            position: absolute; width: 100vw; height: 100vh; padding: 100px 6% 40px 6%;
-            backface-visibility: hidden; overflow-y: auto; scroll-behavior: smooth;
-        }
+        .face { position: absolute; width: 100vw; height: 100vh; padding: 100px 8% 40px 8%; backface-visibility: hidden; overflow-y: auto; }
         .face-front  { transform: rotateY(0deg) translateZ(50vw); }
         .face-right  { transform: rotateY(90deg) translateZ(50vw); }
         .face-back   { transform: rotateY(180deg) translateZ(50vw); }
         .face-left   { transform: rotateY(-90deg) translateZ(50vw); }
 
-        /* --- CARDS & UI ELEMENTS --- */
         .glass-card {
-            background: var(--card-bg); border-radius: 24px; padding: 25px;
-            border: 1px solid rgba(255,255,255,0.03); margin-bottom: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            transition: 0.3s;
+            background: var(--card-bg); border-radius: 20px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .glass-card:hover { border-color: rgba(168, 85, 247, 0.2); }
-        
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .val { font-size: 24px; font-weight: 800; margin-top: 5px; }
-        .val.up { color: var(--success); }
-        .val.down { color: var(--danger); }
-
-        .progress-container { background: #111; height: 8px; border-radius: 10px; margin: 15px 0; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); box-shadow: 0 0 10px var(--primary); }
-
-        .fab {
-            position: fixed; bottom: 35px; right: 35px; width: 65px; height: 65px;
-            background: var(--primary); border-radius: 20px; display: flex;
-            justify-content: center; align-items: center; cursor: pointer;
-            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4); z-index: 100; font-size: 32px; transition: 0.3s;
-        }
-        .fab:hover { transform: scale(1.1) rotate(90deg); background: var(--primary-dark); }
-
-        /* Esconder scrollbar */
-        .face::-webkit-scrollbar { width: 0; }
+        .progress-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-card">
-            <h2>Nova Era Finance</h2>
-            <div id="auth-error"></div>
-            <input type="email" id="login-email" placeholder="E-mail do Casal">
-            <input type="password" id="login-pass" placeholder="Senha">
-            <button id="btn-login" class="btn-premium" onclick="handleLogin()">Acessar Painel</button>
-            <p style="margin-top: 20px; font-size: 13px; color: var(--text-dim);">
-                Sistema compartilhado para o casal.
-            </p>
+            <h2>Acesso Casal</h2>
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="password" placeholder="Senha">
+            <button class="btn-premium" onclick="login()">Entrar no Sistema</button>
+            <div id="error-msg"></div>
         </div>
     </div>
 
     <div id="app-content">
-        <div class="menu-trigger" onclick="toggleSidebar()">
-            <span style="font-size: 20px;">☰</span>
-        </div>
+        <div class="menu-trigger" onclick="toggleSidebar()">☰</div>
         
         <div class="sidebar" id="sidebar">
-            <h2 style="color: var(--primary); margin-bottom: 30px; font-weight: 800;">Configurações</h2>
-            <div class="sidebar-item">⚙️ Conta do Casal</div>
-            <div class="sidebar-item">🌓 Modo Claro/Escuro</div>
-            <div class="sidebar-item">🏷️ Gerenciar Categorias</div>
-            <div class="sidebar-item">📊 Exportar Relatório</div>
-            <div class="sidebar-item">💡 Sobre o App</div>
-            <div class="sidebar-item" onclick="handleLogout()" style="margin-top: 40px; color: var(--danger);">🚪 Sair</div>
+            <div style="color: var(--primary); margin-bottom: 20px; font-weight: bold;">CONFIGURAÇÕES</div>
+            <div onclick="logout()" style="color: var(--danger); cursor: pointer;">✕ Sair do App</div>
         </div>
-
-        <div class="fab">+</div>
 
         <div class="scene">
             <div class="cube" id="cube">
                 <div class="face face-front">
-                    <h4 style="color: var(--primary); text-transform: uppercase; letter-spacing: 2px;">Visão Geral</h4>
-                    <h1 style="font-size: 38px; margin-bottom: 25px;">Dashboard</h1>
-                    
-                    <div class="summary-grid">
-                        <div class="glass-card">
-                            <p style="font-size: 12px; color: var(--text-dim);">Previsão Livre</p>
-                            <div class="val up">R$ 4.250</div>
-                        </div>
-                        <div class="glass-card">
-                            <p style="font-size: 12px; color: var(--text-dim);">Contas Fixas</p>
-                            <div class="val down">R$ 2.100</div>
-                        </div>
-                    </div>
-
+                    <h1 style="font-size: 32px; margin-bottom: 20px;">Resumo do Mês</h1>
                     <div class="glass-card">
-                        <h3 style="margin-bottom: 20px;">Gastos por Categoria</h3>
-                        <canvas id="categoryChart" style="max-height: 220px;"></canvas>
+                        <p>Livre para Gastar</p>
+                        <h2 style="color: var(--success); font-size: 36px;">R$ 4.500,00</h2>
                     </div>
+                    <canvas id="chart1" style="max-height: 250px;"></canvas>
                 </div>
 
                 <div class="face face-right">
-                    <h4 style="color: var(--primary);">Nossos Objetivos</h4>
-                    <h1 style="margin-bottom: 25px;">Metas do Casal</h1>
-                    
+                    <h1>Nossas Metas</h1>
                     <div class="glass-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3>Troca de Carro</h3>
-                            <span style="color: var(--primary);">65%</span>
-                        </div>
-                        <div class="progress-container"><div class="progress-bar" style="width: 65%;"></div></div>
-                        <p style="font-size: 13px; color: var(--text-dim);">Faltam <b>R$ 14.500</b> para o SUV novo.</p>
-                    </div>
-
-                    <div class="glass-card">
-                        <h3>Simulador Preditivo</h3>
-                        <p style="margin-top: 10px; font-size: 14px; line-height: 1.6;">
-                            Se mantiverem o aporte atual, vocês atingirão a meta de **Viagem Internacional** em **Dezembro de 2026**.
-                        </p>
+                        <h3>Fundo de Emergência</h3>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
+                        <p style="font-size: 12px;">75% Concluído</p>
                     </div>
                 </div>
 
                 <div class="face face-back">
-                    <h1>Histórico Detalhado</h1>
-                    <input type="text" placeholder="🔍 Buscar transação, loja ou data..." style="margin-bottom: 20px;">
-                    
-                    <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-                        <div>
-                            <p style="font-weight: 600;">Supermercado Premium</p>
-                            <span style="font-size: 12px; color: var(--text-dim);">Ontem • Variável • Nossa</span>
-                        </div>
-                        <div style="color: var(--danger); font-weight: bold;">- R$ 450,00</div>
-                    </div>
+                    <h1>Histórico</h1>
+                    <div class="glass-card">Mercado - R$ 250,00 (Ontem)</div>
+                    <div class="glass-card">Luz - R$ 180,00 (Pendente)</div>
                 </div>
 
                 <div class="face face-left">
-                    <h1>Evolução Mensal</h1>
+                    <h1>Área do Casal</h1>
                     <div class="glass-card">
-                        <canvas id="evolutionChart"></canvas>
-                    </div>
-                    <div class="glass-card">
-                        <h3>Contas Próximas</h3>
-                        <p style="color: var(--danger); margin-top: 10px;">⚠️ Luz vence em 2 dias (R$ 180,00)</p>
-                        <p style="color: var(--text-dim); margin-top: 8px;">✔️ Internet paga dia 05</p>
+                        <h3>Quem gastou mais?</h3>
+                        <p>Você: 45% | Ela: 55%</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { auth, db } from './firebase-config.js';
-        import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    <script>
+        // --- FUNÇÕES DE LOGIN (Sintaxe v8) ---
+        function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-msg');
+            const btn = document.querySelector('.btn-premium');
 
-        // --- LÓGICA DE LOGIN ---
-        window.handleLogin = async () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            const btn = document.getElementById('btn-login');
-            const errorDiv = document.getElementById('auth-error');
-
-            if(!email || !pass) {
-                errorDiv.innerText = "Preencha todos os campos.";
-                errorDiv.style.display = "block";
-                return;
-            }
-
-            btn.disabled = true;
             btn.innerText = "Verificando...";
-            errorDiv.style.display = "none";
+            btn.disabled = true;
 
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                console.error(error.code);
-                errorDiv.style.display = "block";
-                switch(error.code) {
-                    case 'auth/invalid-credential': errorDiv.innerText = "E-mail ou senha inválidos."; break;
-                    case 'auth/user-not-found': errorDiv.innerText = "Usuário não encontrado."; break;
-                    default: errorDiv.innerText = "Erro ao entrar. Tente novamente.";
-                }
-                btn.disabled = false;
-                btn.innerText = "Acessar Painel";
-            }
-        };
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    console.log("Logado com sucesso!");
+                })
+                .catch((error) => {
+                    errorDiv.style.display = "block";
+                    errorDiv.innerText = "Erro: Email ou senha inválidos.";
+                    btn.innerText = "Entrar no Sistema";
+                    btn.disabled = false;
+                });
+        }
 
-        window.handleLogout = () => signOut(auth);
+        function logout() {
+            firebase.auth().signOut();
+        }
 
-        // --- PROTEÇÃO DE ROTA & ESTADO ---
-        onAuthStateChanged(auth, (user) => {
+        // --- OBSERVAR ESTADO DO USUÁRIO ---
+        firebase.auth().onAuthStateChanged((user) => {
             const authScreen = document.getElementById('auth-screen');
             const appContent = document.getElementById('app-content');
 
@@ -263,78 +176,47 @@
                 setTimeout(() => {
                     authScreen.style.display = 'none';
                     appContent.style.display = 'block';
-                    initCharts();
-                }, 600);
+                    renderCharts();
+                }, 500);
             } else {
                 authScreen.style.display = 'flex';
                 appContent.style.display = 'none';
                 authScreen.style.opacity = '1';
-                document.getElementById('btn-login').disabled = false;
-                document.getElementById('btn-login').innerText = "Acessar Painel";
+                document.querySelector('.btn-premium').disabled = false;
+                document.querySelector('.btn-premium').innerText = "Entrar no Sistema";
             }
         });
 
         // --- NAVEGAÇÃO 3D ---
-        let angle = 0;
+        let currentAngle = 0;
         const cube = document.getElementById('cube');
-        
-        function rotate(dir) {
-            angle += dir * 90;
-            cube.style.transform = `rotateY(${angle}deg)`;
-        }
 
         window.addEventListener('wheel', (e) => {
-            if(Math.abs(e.deltaY) > 20) rotate(e.deltaY > 0 ? -1 : 1);
+            if (e.deltaY > 0) currentAngle -= 90;
+            else currentAngle += 90;
+            cube.style.transform = `rotateY(${currentAngle}deg)`;
         }, { passive: true });
 
-        // Swipe Mobile
-        let startX = 0;
-        window.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-        window.addEventListener('touchend', e => {
-            let diff = startX - e.changedTouches[0].clientX;
-            if(Math.abs(diff) > 50) rotate(diff > 0 ? -1 : 1);
-        });
-
-        window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('active');
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
 
         // --- GRÁFICOS ---
-        function initCharts() {
-            const commonOptions = {
-                responsive: true,
-                plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter' } } } }
-            };
-
-            new Chart(document.getElementById('categoryChart'), {
+        function renderCharts() {
+            const ctx = document.getElementById('chart1').getContext('2d');
+            new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Moradia', 'Lazer', 'Nossa Casa', 'Outros'],
+                    labels: ['Contas', 'Lazer', 'Investimento'],
                     datasets: [{
-                        data: [1200, 450, 800, 200],
-                        backgroundColor: ['#a855f7', '#7e22ce', '#c084fc', '#3b0764'],
-                        borderWidth: 0,
-                        hoverOffset: 20
+                        data: [2000, 800, 1700],
+                        backgroundColor: ['#a855f7', '#7e22ce', '#3b0764'],
+                        borderWidth: 0
                     }]
                 },
-                options: commonOptions
-            });
-
-            new Chart(document.getElementById('evolutionChart'), {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr'],
-                    datasets: [{
-                        label: 'Entradas',
-                        data: [5000, 5200, 4900, 5500],
-                        borderColor: '#22c55e',
-                        tension: 0.4
-                    }, {
-                        label: 'Saídas',
-                        data: [4100, 3800, 4500, 4200],
-                        borderColor: '#ef4444',
-                        tension: 0.4
-                    }]
-                },
-                options: commonOptions
+                options: { 
+                    plugins: { legend: { labels: { color: '#fff' } } }
+                }
             });
         }
     </script>
