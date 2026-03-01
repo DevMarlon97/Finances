@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanças Elite AI - Dashboard Premium</title>
+    <title>Finanças Elite AI</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -12,464 +12,469 @@
     <script src="firebase-config.js"></script>
 
     <style>
+        /* ==================== CSS PREMIUM & DESIGN SYSTEM ==================== */
         :root {
-            --p-purple: #8b5cf6; --p-purple-dark: #6d28d9; --p-glow: rgba(139, 92, 246, 0.5);
+            --p-purple: #8b5cf6; --p-purple-dark: #6d28d9; --p-glow: rgba(139, 92, 246, 0.4);
             --bg-deep: #050508; --bg-card: #0f0f1a; --bg-elevated: #1a1a2e;
             --text-high: #ffffff; --text-mid: #94a3b8; --text-low: #475569;
             --s-green: #10b981; --s-red: #ef4444; --s-amber: #f59e0b;
             --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.1);
-            --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg-deep); color: var(--text-high); overflow-x: hidden; min-height: 100vh; line-height: 1.5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg-deep); color: var(--text-high); overflow-x: hidden; min-height: 100vh; }
+        button, a, input, select { position: relative; z-index: 10; cursor: pointer; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-deep); } ::-webkit-scrollbar-thumb { background: var(--p-purple-dark); border-radius: 10px; }
 
-        /* Scrollbar Premium */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--p-purple-dark); border-radius: 10px; }
-
-        /* Camadas de Z-Index */
-        .z-base { z-index: 1; }
-        .z-interact { z-index: 100; }
-        .z-overlay { z-index: 1000; }
-        .z-max { z-index: 9999; }
-
-        /* -----------------------------------------
-           SISTEMA DE NOTIFICAÇÕES (UI RECURSIVA)
-        ------------------------------------------ */
-        #notification-container {
-            position: fixed; top: 20px; right: 20px; width: 320px;
-            display: flex; flex-direction: column; gap: 10px; z-index: 10000;
-        }
-        .notif {
-            background: var(--bg-elevated); border-left: 4px solid var(--p-purple);
-            padding: 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex; align-items: flex-start; gap: 12px;
-            animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
-            backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-        }
-        .notif.success { border-left-color: var(--s-green); }
-        .notif.error { border-left-color: var(--s-red); }
-        .notif.warn { border-left-color: var(--s-amber); }
-
+        /* --- NOTIFICAÇÕES --- */
+        #notification-container { position: fixed; top: 20px; right: 20px; width: 320px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }
 
-        /* -----------------------------------------
-           DASHBOARD LAYOUT
-        ------------------------------------------ */
-        #main-wrapper { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; opacity: 0; transition: var(--transition); }
-        #main-wrapper.auth-active { opacity: 1; }
+        /* --- TELA DE LOGIN --- */
+        #auth-screen { position: fixed; inset: 0; z-index: 9999; background: radial-gradient(circle at center, var(--bg-card) 0%, var(--bg-deep) 100%); display: flex; align-items: center; justify-content: center; }
+        .auth-box { background: var(--bg-card); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .input-base { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: var(--bg-deep); border: 1px solid var(--glass-border); color: white; outline: none; transition: 0.3s; }
+        .input-base:focus { border-color: var(--p-purple); box-shadow: 0 0 12px var(--p-glow); }
+        .btn-primary { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--p-purple), var(--p-purple-dark)); border: none; border-radius: 12px; color: white; font-weight: bold; transition: 0.3s; }
+        .btn-primary:hover { box-shadow: 0 8px 25px var(--p-glow); transform: translateY(-2px); }
 
-        /* Sidebar Profissional */
-        aside {
-            background: var(--bg-card); border-right: 1px solid var(--glass-border);
-            padding: 30px 20px; display: flex; flex-direction: column;
-        }
-        .nav-link {
-            padding: 14px 18px; border-radius: 12px; color: var(--text-mid);
-            text-decoration: none; margin-bottom: 8px; transition: var(--transition);
-            display: flex; align-items: center; gap: 12px; font-weight: 500;
-        }
-        .nav-link:hover, .nav-link.active {
-            background: var(--glass); color: var(--p-purple); transform: translateX(5px);
-        }
-
-        /* Área de Conteúdo */
-        main { padding: 40px; overflow-y: auto; max-height: 100vh; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        /* --- LAYOUT PRINCIPAL --- */
+        #main-wrapper { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; opacity: 0; transition: opacity 0.5s; display: none; }
+        #main-wrapper.active { opacity: 1; display: grid; }
+        aside { background: var(--bg-card); border-right: 1px solid var(--glass-border); padding: 30px 20px; display: flex; flex-direction: column; }
+        main { padding: 40px; max-height: 100vh; overflow-y: auto; }
         
-        /* -----------------------------------------
-           CARROSSEL 3D ENGINE (REESTRUTURADO)
-        ------------------------------------------ */
-        .carousel-container {
-            position: relative; height: 300px; width: 100%;
-            perspective: 2000px; display: flex; justify-content: center; align-items: center;
-            margin-bottom: 50px;
-        }
-        .carousel-3d-scene {
-            position: relative; width: 350px; height: 200px;
-            transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .c-card {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 24px; padding: 30px;
-            background: linear-gradient(135deg, var(--bg-elevated) 0%, #1a1a35 100%);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            backface-visibility: hidden; display: flex; flex-direction: column;
-            justify-content: space-between; transition: var(--transition);
-            pointer-events: none; /* Só o ativo recebe clique via JS logic */
-        }
-        .c-card.active { pointer-events: auto; transform: translateZ(100px); border-color: var(--p-purple); }
-        
-        /* -----------------------------------------
-           SISTEMA DE INTELIGÊNCIA ARTIFICIAL (IA) UI
-        ------------------------------------------ */
-        .ai-assistant-bar {
-            background: var(--glass); border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 15px 25px; margin-bottom: 30px;
-            display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
-        }
-        #ai-input {
-            background: transparent; border: none; color: white; flex: 1;
-            font-size: 16px; outline: none;
-        }
-        .ai-suggestion-box {
-            position: absolute; background: var(--bg-elevated); border-radius: 12px;
-            width: 100%; max-width: 400px; margin-top: 5px; border: 1px solid var(--p-purple);
-            display: none; z-index: 1000; overflow: hidden;
-        }
-        .ai-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--glass); }
-        .ai-item:hover { background: var(--p-purple); }
+        .profile-tabs { display: flex; background: var(--bg-elevated); padding: 5px; border-radius: 12px; margin-bottom: 30px; }
+        .tab { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-mid); border-radius: 8px; font-weight: 600; transition: 0.3s; }
+        .tab.active { background: var(--p-purple); color: white; box-shadow: 0 4px 10px var(--p-glow); }
 
-        /* -----------------------------------------
-           MODAIS E GRÁFICOS
-        ------------------------------------------ */
-        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-        .stat-card {
-            background: var(--bg-card); border-radius: 20px; padding: 25px;
-            border: 1px solid var(--glass-border);
-        }
-        .chart-container { height: 250px; position: relative; }
+        /* --- CARROSSEL 3D ENGINE --- */
+        .carousel-container { position: relative; height: 260px; width: 100%; perspective: 1500px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
+        .carousel-scene { position: relative; width: 320px; height: 180px; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .c-card { position: absolute; width: 100%; height: 100%; border-radius: 20px; padding: 25px; background: linear-gradient(135deg, var(--bg-elevated) 0%, #1a1a35 100%); border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); backface-visibility: hidden; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.5s; pointer-events: none; }
+        .c-card.active { pointer-events: auto; border-color: var(--p-purple); }
 
+        /* --- IA ASSISTANT --- */
+        .ai-bar { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 16px; padding: 15px 25px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; position: relative; }
+        .ai-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-elevated); border-radius: 12px; border: 1px solid var(--p-purple); display: none; z-index: 100; margin-top: 5px; overflow: hidden; }
+
+        /* --- GRÁFICOS E METAS --- */
+        .grid-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .card-dash { background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid var(--glass-border); }
+        .progress-bg { background: var(--bg-deep); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { background: linear-gradient(90deg, var(--p-purple-dark), var(--p-purple)); height: 100%; transition: width 1s; box-shadow: 0 0 10px var(--p-glow); }
+
+        /* --- TABELA DE HISTÓRICO --- */
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--glass-border); }
+        th { color: var(--text-mid); font-weight: 600; background: var(--bg-elevated); }
     </style>
 </head>
 <body>
 
     <div id="notification-container"></div>
 
-    <div id="auth-screen" style="position:fixed; inset:0; z-index:9999; background:var(--bg-deep); display:flex; align-items:center; justify-content:center;">
-        <div style="width:100%; max-width:400px; padding:40px; background:var(--bg-card); border-radius:24px; border:1px solid var(--glass-border);">
-            <h1 style="text-align:center; margin-bottom:30px; color:var(--p-purple);">Finanças Elite</h1>
-            <input type="email" id="login-email" placeholder="E-mail" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:var(--bg-deep); border:1px solid var(--glass-border); color:white;">
-            <input type="password" id="login-pass" placeholder="Senha" style="width:100%; padding:15px; margin-bottom:25px; border-radius:12px; background:var(--bg-deep); border:1px solid var(--glass-border); color:white;">
-            <button id="btn-do-login" class="btn-primary" style="width:100%; padding:15px; background:var(--p-purple); border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer;">Entrar no Sistema</button>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1 style="color: var(--p-purple); margin-bottom: 30px;">Elite Finance AI</h1>
+            <form id="form-login">
+                <input type="email" id="login-email" class="input-base" placeholder="E-mail" required>
+                <input type="password" id="login-pass" class="input-base" placeholder="Senha" required>
+                <button type="submit" id="btn-login" class="btn-primary">Acessar Sistema</button>
+            </form>
         </div>
     </div>
 
     <div id="main-wrapper">
         <aside>
-            <div style="font-size: 22px; font-weight: 800; color: var(--p-purple); margin-bottom: 50px;">ELITE AI <span style="color:white">FIN</span></div>
-            <nav>
-                <a href="#" class="nav-link active" data-nav="dashboard">Dashboard</a>
-                <a href="#" class="nav-link" data-nav="transactions">Histórico</a>
-                <a href="#" class="nav-link" data-nav="goals">Metas & Sonhos</a>
-                <a href="#" class="nav-link" data-nav="planning">Planejamento</a>
-                <a href="#" class="nav-link" data-nav="settings">Configurações</a>
-            </nav>
-            <div style="margin-top:auto">
-                <button id="btn-logout" style="background:none; border:none; color:var(--s-red); cursor:pointer; font-weight:600;">Sair do Sistema</button>
+            <h2 style="color: var(--p-purple); margin-bottom: 40px;">ELITE <span style="color:white">FIN</span></h2>
+            
+            <div class="profile-tabs">
+                <button class="tab active" data-view="caroline">Caroline</button>
+                <button class="tab" data-view="marlon">Marlon</button>
+                <button class="tab" data-view="nossa">Nossa</button>
             </div>
+
+            <nav style="display: flex; flex-direction: column; gap: 15px;">
+                <a href="#" style="color: var(--text-high); text-decoration: none;">📊 Dashboard Overview</a>
+                <a href="#" style="color: var(--text-mid); text-decoration: none;">🔄 Transações Recorrentes</a>
+                <a href="#" id="btn-export" style="color: var(--text-mid); text-decoration: none;">⬇️ Exportar Relatório CSV</a>
+            </nav>
+
+            <button id="btn-logout" style="margin-top: auto; background: none; border: none; color: var(--s-red); text-align: left; font-weight: bold;">🚪 Desconectar</button>
         </aside>
 
         <main>
-            <div class="top-bar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <div>
-                    <h2 id="welcome-msg">Olá, Caroline & Marlon</h2>
-                    <p style="color:var(--text-mid)">Seu assistente financeiro IA está ativo.</p>
+                    <h2 id="header-title">Visão Geral</h2>
+                    <p style="color: var(--text-mid);">Motor de Inteligência Artificial Ativo.</p>
                 </div>
-                <div style="display:flex; gap:15px">
-                    <button id="btn-global-add" style="padding:12px 24px; background:var(--p-purple); border-radius:12px; border:none; color:white; font-weight:bold; cursor:pointer;">+ Nova Transação</button>
-                    <button class="icon-btn" id="btn-notif-center" style="background:var(--bg-card); border:1px solid var(--glass-border); padding:10px; border-radius:12px; color:white; cursor:pointer;">🔔</button>
-                </div>
+                <button id="btn-add-trans" class="btn-primary" style="width: auto; padding: 10px 20px;">+ Nova Transação</button>
             </div>
 
-            <div class="ai-assistant-bar">
-                <span style="font-size:20px">🤖</span>
-                <input type="text" id="ai-input" placeholder="Pergunte algo ou digite uma despesa (ex: Mercado R$ 250)...">
-                <div class="ai-suggestion-box" id="ai-suggestions"></div>
+            <div class="ai-bar">
+                <span>🤖</span>
+                <input type="text" id="ai-input" style="flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px;" placeholder="Digite uma despesa (ex: Mercado R$ 250) e a IA faz o resto...">
+                <div class="ai-suggestions" id="ai-suggestions"></div>
             </div>
 
             <div class="carousel-container">
-                <button id="car-prev" class="carousel-btn" style="position:absolute; left:0; z-index:100; background:none; border:none; color:white; font-size:40px; cursor:pointer;">‹</button>
-                <div class="carousel-3d-scene" id="main-scene">
+                <button id="car-prev" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; z-index: 100;">‹</button>
+                <div class="carousel-scene" id="main-scene">
                     </div>
-                <button id="car-next" class="carousel-btn" style="position:absolute; right:0; z-index:100; background:none; border:none; color:white; font-size:40px; cursor:pointer;">›</button>
+                <button id="car-next" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; z-index: 100;">›</button>
             </div>
 
-            <div class="grid-stats">
-                <div class="stat-card">
-                    <h3>Gastos por Categoria</h3>
-                    <div class="chart-container"><canvas id="chart-categories"></canvas></div>
+            <div class="grid-dashboard">
+                <div class="card-dash">
+                    <h3 style="margin-bottom: 20px;">Distribuição de Gastos</h3>
+                    <div style="height: 220px; position: relative;"><canvas id="chart-cat"></canvas></div>
                 </div>
-                <div class="stat-card">
-                    <h3>Projeção de Saldo Mensal</h3>
-                    <div class="chart-container"><canvas id="chart-projection"></canvas></div>
-                </div>
-                <div class="stat-card">
-                    <h3>Meta: Casamento 2026</h3>
-                    <div style="margin-top:20px">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px">
-                            <span>Progresso</span>
-                            <span id="meta-percent">30%</span>
+                
+                <div class="card-dash" id="goals-container">
+                    <h3 style="margin-bottom: 20px;">Planejamento Estratégico</h3>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                            <strong>Casamento (29/08/2026)</strong>
+                            <span id="goal-wed-perc" style="color: var(--p-purple);">0%</span>
                         </div>
-                        <div style="height:12px; background:var(--bg-deep); border-radius:6px; overflow:hidden">
-                            <div id="meta-bar" style="width:30%; height:100%; background:var(--p-purple); box-shadow:0 0 15px var(--p-glow)"></div>
-                        </div>
+                        <div class="progress-bg"><div class="progress-fill" id="goal-wed-bar" style="width: 0%;"></div></div>
+                        <div style="font-size: 12px; color: var(--text-mid); margin-top: 5px;" id="goal-wed-desc">Analisando...</div>
                     </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                            <strong>Amortização (Saldo: R$ 152k)</strong>
+                            <span id="goal-mort-perc" style="color: var(--p-purple);">0%</span>
+                        </div>
+                        <div class="progress-bg"><div class="progress-fill" id="goal-mort-bar" style="width: 0%;"></div></div>
+                        <div style="font-size: 12px; color: var(--text-mid); margin-top: 5px;">Meta de quitação antecipada.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-dash">
+                <h3 style="margin-bottom: 20px;">Histórico Recente</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th style="text-align: right;">Valor</th>
+                                <th style="text-align: center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            </tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        /**
-         * ENGINE CORE - ELITE FINANCEIRO AI
-         * Este script utiliza o padrão de State Management para garantir que 
-         * todos os dados reflitam em tempo real em todos os botões e gráficos.
-         */
-        
-        class EliteApp {
-            constructor() {
-                this.state = {
-                    user: null,
-                    transactions: [],
-                    currentView: 'nosso',
-                    carouselIndex: 0,
-                    notifications: [],
-                    categories: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Investimentos']
-                };
-                
-                this.init();
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // 1. UTILITÁRIOS E SEGURANÇA
+            class Utils {
+                static formatMoney(val) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0); }
+                static formatDate(d) { 
+                    if(!d) return '--/--/----';
+                    const date = d.seconds ? new Date(d.seconds * 1000) : new Date(d);
+                    return date.toLocaleDateString('pt-BR');
+                }
+                static generateID() { return Math.random().toString(36).substr(2, 9); }
             }
 
-            async init() {
-                console.log("🚀 Iniciando Engine Elite...");
-                this.setupCoreListeners();
-                this.initNotificationSystem();
-                this.initIAAssistant();
-            }
-
-            // --- SISTEMA DE NOTIFICAÇÕES INTELIGENTES ---
-            notify(message, type = 'info') {
-                const container = document.getElementById('notification-container');
-                const id = Date.now();
-                const html = `
-                    <div class="notif ${type}" id="notif-${id}">
-                        <div class="notif-content">
-                            <strong>Notificação</strong>
-                            <p>${message}</p>
-                        </div>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', html);
-                setTimeout(() => document.getElementById(`notif-${id}`)?.remove(), 5000);
-            }
-
-            // --- MOTOR DE INTERAÇÃO (RESOLVE O PROBLEMA DOS BOTÕES) ---
-            setupCoreListeners() {
-                // Delegação de Eventos: Captura cliques em qualquer lugar do body 
-                // e filtra pelos IDs ou Classes, eliminando bloqueios de z-index.
-                document.body.addEventListener('click', (e) => {
-                    const target = e.target;
-
-                    if (target.id === 'btn-global-add') this.handleNewTransaction();
-                    if (target.id === 'btn-logout') this.handleLogout();
-                    if (target.id === 'car-next') this.rotateCarousel(1);
-                    if (target.id === 'car-prev') this.rotateCarousel(-1);
-                    if (target.classList.contains('nav-link')) this.handleNavigation(target);
-                });
-
-                // Escuta Auth do Firebase
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        this.state.user = user;
-                        document.getElementById('auth-screen').style.display = 'none';
-                        document.getElementById('main-wrapper').classList.add('auth-active');
-                        this.notify(`Bem-vindo, ${user.email}`, 'success');
-                        this.loadData();
-                    } else {
-                        document.getElementById('auth-screen').style.display = 'flex';
-                        document.getElementById('main-wrapper').classList.remove('auth-active');
-                    }
-                });
-            }
-
-            // --- INTELIGÊNCIA ARTIFICIAL (IA) - AUTOCOMPLETE & SUGESTÃO ---
-            initIAAssistant() {
-                const input = document.getElementById('ai-input');
-                const suggestBox = document.getElementById('ai-suggestions');
-
-                input.addEventListener('input', (e) => {
-                    const val = e.target.value.toLowerCase();
-                    if (val.length < 2) { suggestBox.style.display = 'none'; return; }
-
-                    // Lógica de Previsão de categoria
-                    const match = this.state.categories.filter(c => c.toLowerCase().includes(val));
+            // 2. SISTEMA DE NOTIFICAÇÕES TOAST
+            class Notifier {
+                static show(msg, type = 'info') {
+                    const cont = document.getElementById('notification-container');
+                    const id = Utils.generateID();
+                    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : 'ℹ️';
+                    const color = type === 'success' ? 'var(--s-green)' : type === 'error' ? 'var(--s-red)' : 'var(--p-purple)';
                     
-                    if (match.length > 0) {
-                        suggestBox.innerHTML = match.map(m => `<div class="ai-item">💡 Adicionar à categoria: <strong>${m}</strong></div>`).join('');
-                        suggestBox.style.display = 'block';
-                    }
-                });
-            }
-            // --- MOTOR DE ROTAÇÃO 3D (Cálculos de Perspectiva) ---
-            rotateCarousel(direction) {
-                const scene = document.getElementById('main-scene');
-                this.state.carouselIndex += direction;
-                const angle = this.state.carouselIndex * -120; // 360 / 3 cards = 120 graus
-                scene.style.transform = `rotateY(${angle}deg)`;
-                
-                // Feedback tátil/sonoro simulado
-                this.notify("Visualização de dados atualizada", "info");
-                this.updateActiveCardUI();
-            }
-
-            updateActiveCardUI() {
-                const cards = document.querySelectorAll('.c-card');
-                const activeIdx = Math.abs(this.state.carouselIndex % 3);
-                cards.forEach((c, i) => {
-                    c.classList.toggle('active', i === activeIdx);
-                    // Aplica brilho extra no card ativo
-                    c.style.boxShadow = i === activeIdx ? `0 0 30px ${this.getComputedStyleValue('--p-glow')}` : 'none';
-                });
-            }
-
-            // --- DASHBOARD: GRÁFICOS DINÂMICOS (Chart.js) ---
-            renderCharts() {
-                const ctxCat = document.getElementById('chart-categories').getContext('2d');
-                const ctxProj = document.getElementById('chart-projection').getContext('2d');
-
-                // Gráfico de Categorias (Rosca Premium)
-                new Chart(ctxCat, {
-                    type: 'doughnut',
-                    data: {
-                        labels: this.state.categories,
-                        datasets: [{
-                            data: [1200, 2500, 800, 450, 2000],
-                            backgroundColor: ['#8b5cf6', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
-                            borderWidth: 0,
-                            hoverOffset: 20
-                        }]
-                    },
-                    options: { 
-                        cutout: '75%',
-                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
-                    }
-                });
-
-                // Gráfico de Projeção (Linha de Tendência IA)
-                new Chart(ctxProj, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                        datasets: [{
-                            label: 'Previsão de Saldo',
-                            data: [5000, 5800, 5200, 6100, 7500, 8900],
-                            borderColor: '#8b5cf6',
-                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: { grid: { color: '#1e1e2e' }, ticks: { color: '#94a3b8' } },
-                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                        }
-                    }
-                });
-            }
-
-            // --- GESTÃO DE DADOS FIREBASE (Sincronização Profunda) ---
-            async loadData() {
-                if (!this.state.user) return;
-
-                // 1. Carregar Transações com Listener em Tempo Real
-                db.collection('transactions')
-                    .where('uid', '==', this.state.user.uid)
-                    .orderBy('date', 'desc')
-                    .onSnapshot(snap => {
-                        this.state.transactions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                        this.updateBalanceUI();
-                        this.checkSmartAlerts();
-                    });
-
-                // 2. Carregar Metas
-                this.updateGoalsUI();
-                
-                // Inicializar Gráficos após carregar dados
-                this.renderCharts();
-                this.renderCarouselCards();
-            }
-
-            renderCarouselCards() {
-                const scene = document.getElementById('main-scene');
-                const data = [
-                    { label: "Saldo Total", val: "R$ 12.450,00", color: "var(--text-high)" },
-                    { label: "Receitas", val: "R$ 8.200,00", color: "var(--s-green)" },
-                    { label: "Despesas", val: "R$ 3.750,00", color: "var(--s-red)" }
-                ];
-
-                scene.innerHTML = data.map((item, i) => `
-                    <div class="c-card ${i === 0 ? 'active' : ''}" style="transform: rotateY(${i * 120}deg) translateZ(250px);">
-                        <span style="color:var(--text-mid); font-weight:600;">${item.label}</span>
-                        <h2 style="font-size:32px; color:${item.color}">${item.val}</h2>
-                        <div style="font-size:12px; color:var(--text-low)">Atualizado agora via IA</div>
-                    </div>
-                `).join('');
-            }
-
-            // --- IA: ALERTAS INTELIGENTES & AUTOCOMPLETAR ---
-            checkSmartAlerts() {
-                const lastExp = this.state.transactions.find(t => t.type === 'expense');
-                if (lastExp && lastExp.amount > 1000) {
-                    this.notify(`Alerta IA: Gasto incomum detectado em "${lastExp.description}". Isso compromete 12% da sua meta de Casamento.`, "warn");
+                    const el = document.createElement('div');
+                    el.id = `notif-${id}`;
+                    el.style.cssText = `display:flex; gap:15px; padding:15px; background:var(--bg-elevated); border-left:4px solid ${color}; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.6); animation: slideIn 0.3s forwards; align-items:center;`;
+                    el.innerHTML = `<span style="font-size:20px">${icon}</span> <span style="flex:1; font-size:14px;">${msg}</span> <button style="background:none; border:none; color:white;" onclick="this.parentElement.remove()">✕</button>`;
+                    
+                    cont.appendChild(el);
+                    setTimeout(() => { if(document.getElementById(el.id)) document.getElementById(el.id).remove(); }, 5000);
                 }
             }
 
-            // --- SISTEMA DE METAS DINÂMICAS ---
-            updateGoalsUI() {
-                const totalInvestido = 15000;
-                const metaCasamento = 50000;
-                const percent = (totalInvestido / metaCasamento) * 100;
-                
-                document.getElementById('meta-bar').style.width = `${percent}%`;
-                document.getElementById('meta-percent').innerText = `${Math.floor(percent)}%`;
+            // 3. MATEMÁTICA E METAS
+            class FinanceMath {
+                static calculateGoal(target, current, dateString) {
+                    const diffDays = Math.max(1, Math.ceil((new Date(dateString) - new Date()) / (1000 * 60 * 60 * 24)));
+                    const remaining = target - current;
+                    const monthly = (remaining / (diffDays / 30)).toFixed(2);
+                    const perc = Math.min((current / target) * 100, 100).toFixed(1);
+                    return { perc, diffDays, monthly };
+                }
             }
 
-            // --- EVENTOS DE MODAL E TRANSAÇÃO ---
-            handleNewTransaction() {
-                this.notify("Abrindo painel de registro...", "info");
-                // Aqui entraria a lógica de abrir o modal (conforme estrutura da parte 1)
-                // Implementando preenchimento automático inteligente
-                const aiField = document.getElementById('ai-input');
-                aiField.focus();
-                this.notify("Use o assistente IA para registrar rápido!", "success");
+            // 4. MOTOR DE IA (NLP Simples)
+            class AIEngine {
+                static process(text) {
+                    const match = text.match(/(?:r\$?\s?)(\d+(?:[.,]\d{2})?)/i);
+                    const amount = match ? parseFloat(match[1].replace(',', '.')) : null;
+                    const isIncome = ['recebi', 'salário', 'pix'].some(w => text.toLowerCase().includes(w));
+                    let cat = 'Outros';
+                    const map = { 'mercado': 'Alimentação', 'ifood': 'Alimentação', 'uber': 'Transporte', 'luz': 'Moradia', 'casamento': 'Eventos', 'parcela': 'Moradia' };
+                    for (let key in map) if(text.toLowerCase().includes(key)) cat = map[key];
+                    return { amount, type: isIncome ? 'income' : 'expense', category: cat };
+                }
             }
 
-            handleLogout() {
-                auth.signOut().then(() => {
-                    this.notify("Sessão encerrada com segurança.", "info");
-                });
+            // 5. CLASSE PRINCIPAL DO APLICATIVO
+            class EliteApp {
+                constructor() {
+                    this.db = firebase.firestore();
+                    this.auth = firebase.auth();
+                    this.state = { user: null, view: 'caroline', trans: [], carouselIdx: 0, chart: null };
+                    this.init();
+                }
+
+                init() {
+                    this.bindAuth();
+                    this.bindEvents();
+                    this.setupAIAssistant();
+                }
+
+                bindAuth() {
+                    this.auth.onAuthStateChanged(user => {
+                        if (user) {
+                            this.state.user = user;
+                            document.getElementById('auth-screen').style.display = 'none';
+                            document.getElementById('main-wrapper').classList.add('active');
+                            Notifier.show(`Bem-vindo(a)!`, 'success');
+                            this.loadData();
+                        } else {
+                            document.getElementById('auth-screen').style.display = 'flex';
+                            document.getElementById('main-wrapper').classList.remove('active');
+                        }
+                    });
+
+                    document.getElementById('form-login').onsubmit = async (e) => {
+                        e.preventDefault();
+                        const btn = document.getElementById('btn-login');
+                        btn.innerText = 'Autenticando...';
+                        try {
+                            await this.auth.signInWithEmailAndPassword(
+                                document.getElementById('login-email').value,
+                                document.getElementById('login-pass').value
+                            );
+                        } catch (err) {
+                            Notifier.show('Erro no login. Verifique as credenciais.', 'error');
+                            btn.innerText = 'Acessar Sistema';
+                        }
+                    };
+
+                    document.getElementById('btn-logout').onclick = () => this.auth.signOut();
+                }
+
+                bindEvents() {
+                    // Abas de Perfil (Caroline, Marlon, Nossa)
+                    document.querySelectorAll('.tab').forEach(tab => {
+                        tab.onclick = (e) => {
+                            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                            e.target.classList.add('active');
+                            this.state.view = e.target.dataset.view;
+                            Notifier.show(`Visão alterada para: ${this.state.view.toUpperCase()}`, 'info');
+                            this.loadData();
+                        };
+                    });
+
+                    // Carrossel 3D
+                    document.getElementById('car-next').onclick = () => this.rotateCarousel(1);
+                    document.getElementById('car-prev').onclick = () => this.rotateCarousel(-1);
+
+                    // Adição Manual
+                    document.getElementById('btn-add-trans').onclick = () => {
+                        const val = prompt('Valor da transação (R$):');
+                        if(!val) return;
+                        const desc = prompt('Descrição:');
+                        const isIncome = confirm('OK para Receita, Cancelar para Despesa.');
+                        this.saveTransaction({
+                            amount: parseFloat(val.replace(',','.')),
+                            description: desc || 'Sem descrição',
+                            category: isIncome ? 'Receita' : 'Outros',
+                            type: isIncome ? 'income' : 'expense',
+                            owner: this.state.view,
+                            date: new Date(),
+                            uid: this.state.user.uid
+                        });
+                    };
+
+                    // Exportação CSV
+                    document.getElementById('btn-export').onclick = (e) => {
+                        e.preventDefault();
+                        if(this.state.trans.length === 0) return Notifier.show('Sem dados para exportar.', 'warn');
+                        let csv = "Data;Descricao;Categoria;Valor;Tipo;Dono\n";
+                        this.state.trans.forEach(t => {
+                            csv += `${Utils.formatDate(t.date)};"${t.description}";${t.category};${t.amount};${t.type};${t.owner}\n`;
+                        });
+                        const link = document.createElement('a');
+                        link.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURI(csv);
+                        link.download = `Extrato_${this.state.view}.csv`;
+                        link.click();
+                        Notifier.show('Download iniciado!', 'success');
+                    };
+                }
+
+                setupAIAssistant() {
+                    const input = document.getElementById('ai-input');
+                    const suggest = document.getElementById('ai-suggestions');
+                    
+                    input.onkeyup = (e) => {
+                        const val = input.value;
+                        if(e.key === 'Enter' && val.length > 3) {
+                            const data = AIEngine.process(val);
+                            if(data.amount) {
+                                if(confirm(`IA: Salvar ${data.type==='income'?'Receita':'Despesa'} de R$ ${data.amount} em ${data.category}?`)) {
+                                    this.saveTransaction({
+                                        amount: data.amount, description: val, category: data.category,
+                                        type: data.type, owner: this.state.view, date: new Date(), uid: this.state.user.uid
+                                    });
+                                    input.value = ''; suggest.style.display = 'none';
+                                }
+                            } else { Notifier.show('A IA não encontrou um valor válido.', 'error'); }
+                        } else if(val.length > 3) {
+                            const data = AIEngine.process(val);
+                            suggest.innerHTML = `<div style="padding:15px">💡 Sugestão: <strong>${data.category}</strong>. Pressione Enter.</div>`;
+                            suggest.style.display = 'block';
+                        } else { suggest.style.display = 'none'; }
+                    };
+                }
+
+                async saveTransaction(data) {
+                    try {
+                        await this.db.collection('transactions').add(data);
+                        Notifier.show('Salvo com sucesso!', 'success');
+                    } catch(err) { Notifier.show('Erro ao salvar.', 'error'); }
+                }
+
+                loadData() {
+                    if(this.unsubscribe) this.unsubscribe();
+                    this.unsubscribe = this.db.collection('transactions')
+                        .where('uid', '==', this.state.user.uid)
+                        .where('owner', 'in', [this.state.view, 'nossa'])
+                        .orderBy('date', 'desc').limit(50)
+                        .onSnapshot(snap => {
+                            this.state.trans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                            this.updateUI();
+                        });
+                }
+
+                updateUI() {
+                    let inc = 0, exp = 0;
+                    this.state.trans.forEach(t => t.type === 'income' ? inc += t.amount : exp += t.amount);
+                    const bal = inc - exp;
+
+                    this.renderCarouselCards(bal, inc, exp);
+                    this.renderHistory();
+                    this.renderChart();
+                    this.renderGoals();
+                }
+
+                rotateCarousel(dir) {
+                    this.state.carouselIdx += dir;
+                    document.getElementById('main-scene').style.transform = `rotateY(${this.state.carouselIdx * -120}deg)`;
+                    
+                    const cards = document.querySelectorAll('.c-card');
+                    const activeIdx = Math.abs(this.state.carouselIdx % 3);
+                    cards.forEach((c, i) => {
+                        c.classList.toggle('active', i === activeIdx);
+                        c.style.boxShadow = i === activeIdx ? '0 0 30px var(--p-glow)' : '0 20px 50px rgba(0,0,0,0.5)';
+                    });
+                }
+
+                renderCarouselCards(bal, inc, exp) {
+                    const scene = document.getElementById('main-scene');
+                    scene.innerHTML = `
+                        <div class="c-card active" style="transform: rotateY(0deg) translateZ(200px); box-shadow: 0 0 30px var(--p-glow);">
+                            <span style="color:var(--text-mid);">Saldo Disponível</span>
+                            <h2 style="font-size:32px; color:${bal>=0?'var(--text-high)':'var(--s-red)'}">${Utils.formatMoney(bal)}</h2>
+                        </div>
+                        <div class="c-card" style="transform: rotateY(120deg) translateZ(200px);">
+                            <span style="color:var(--text-mid);">Entradas</span>
+                            <h2 style="font-size:32px; color:var(--s-green)">${Utils.formatMoney(inc)}</h2>
+                        </div>
+                        <div class="c-card" style="transform: rotateY(240deg) translateZ(200px);">
+                            <span style="color:var(--text-mid);">Saídas</span>
+                            <h2 style="font-size:32px; color:var(--s-red)">${Utils.formatMoney(exp)}</h2>
+                        </div>
+                    `;
+                }
+
+                renderHistory() {
+                    const tbody = document.getElementById('history-body');
+                    tbody.innerHTML = '';
+                    if(this.state.trans.length === 0) return tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+                    
+                    this.state.trans.slice(0, 8).forEach(t => {
+                        const isInc = t.type === 'income';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${Utils.formatDate(t.date)}</td>
+                            <td>${t.description}</td>
+                            <td><span style="background:var(--bg-deep); padding:5px 10px; border-radius:8px; border:1px solid var(--p-purple); font-size:12px;">${t.category}</span></td>
+                            <td style="text-align:right; color:${isInc?'var(--s-green)':'var(--text-high)'}">${isInc?'+':'-'} ${Utils.formatMoney(t.amount)}</td>
+                            <td style="text-align:center;"><button class="btn-del" data-id="${t.id}" style="background:none;border:none;color:var(--s-red);">🗑️</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.querySelectorAll('.btn-del').forEach(b => {
+                        b.onclick = async (e) => {
+                            if(confirm("Excluir transação?")) {
+                                await this.db.collection('transactions').doc(e.target.dataset.id).delete();
+                                Notifier.show('Excluído.', 'info');
+                            }
+                        };
+                    });
+                }
+
+                renderGoals() {
+                    // Cálculo da Meta 1: Casamento (Baseado na Data)
+                    const wedCalc = FinanceMath.calculateGoal(50000, 15000, '2026-08-29');
+                    document.getElementById('goal-wed-perc').innerText = `${wedCalc.perc}%`;
+                    document.getElementById('goal-wed-bar').style.width = `${wedCalc.perc}%`;
+                    document.getElementById('goal-wed-desc').innerText = `Faltam ${wedCalc.diffDays} dias. Economize R$ ${wedCalc.monthly}/mês.`;
+
+                    // Cálculo da Meta 2: Financiamento
+                    const mortCalc = FinanceMath.calculateGoal(152000, 12000, '2051-01-01'); // Exemplo 300 meses
+                    document.getElementById('goal-mort-perc').innerText = `${mortCalc.perc}%`;
+                    document.getElementById('goal-mort-bar').style.width = `${mortCalc.perc}%`;
+                }
+
+                renderChart() {
+                    const ctx = document.getElementById('chart-cat');
+                    if(this.state.chart) this.state.chart.destroy();
+                    
+                    const cats = {};
+                    this.state.trans.filter(t => t.type === 'expense').forEach(t => cats[t.category] = (cats[t.category] || 0) + t.amount);
+                    const labels = Object.keys(cats).length ? Object.keys(cats) : ['Sem Despesas'];
+                    const data = Object.values(cats).length ? Object.values(cats) : [1];
+
+                    this.state.chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: { labels, datasets: [{ data, backgroundColor: ['#8b5cf6', '#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#1e1833'], borderWidth: 0 }] },
+                        options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } } }
+                    });
+                }
             }
 
-            handleNavigation(el) {
-                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                el.classList.add('active');
-                this.notify(`Navegando para: ${el.innerText}`, "info");
-            }
-
-            getComputedStyleValue(varName) {
-                return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-            }
-        }
-
-        // --- INSTANCIAÇÃO FINAL ---
-        const App = new EliteApp();
-
-        // Correção de Eventos de Touch para Mobile no Carrossel
-        let touchStartX = 0;
-        document.getElementById('main-scene').addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
-        document.getElementById('main-scene').addEventListener('touchend', e => {
-            const touchEndX = e.changedTouches[0].clientX;
-            if (touchStartX - touchEndX > 50) App.rotateCarousel(1);
-            if (touchStartX - touchEndX < -50) App.rotateCarousel(-1);
+            // Iniciar Aplicação
+            window.App = new EliteApp();
         });
-
     </script>
 </body>
 </html>
