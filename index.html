@@ -2,254 +2,481 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Financeiro Inteligente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sistema Financeiro Premium</title>
   
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <script src="firebase-config.js"></script>
 
   <style>
-    /* VARIÁVEIS DO TEMA PREMIUM DARK/ROXO */
+    /* 1. VARIÁVEIS DO TEMA PREMIUM */
     :root {
-      --bg-dark: #0f0c1b;
-      --bg-card: #1a162b;
+      --bg-dark: #09070f;
+      --bg-card: #151123;
+      --bg-card-elevated: #1e1833;
       --primary-purple: #8b5cf6;
+      --secondary-purple: #6d28d9;
       --purple-glow: rgba(139, 92, 246, 0.4);
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
-      --border-radius: 16px;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border-radius: 20px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
     
     body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
 
-    /* --- TELA DE LOGIN --- */
-    #login-screen {
-      display: flex; justify-content: center; align-items: center; height: 100vh;
-      background: radial-gradient(circle at center, #1a162b 0%, #0f0c1b 100%);
-    }
+    /* Correção do bloqueio de tela: Garante que os botões sempre fiquem acima */
+    button, a, input, select { position: relative; z-index: 10; cursor: pointer; }
 
+    /* 2. TELA DE LOGIN (Oculta por padrão via JS se logado) */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: radial-gradient(circle at center, var(--bg-card) 0%, var(--bg-dark) 100%);
+      display: flex; justify-content: center; align-items: center; z-index: 9999;
+    }
     .login-box {
       background: var(--bg-card); padding: 40px; border-radius: var(--border-radius);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.2);
-      width: 100%; max-width: 400px; text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid rgba(139, 92, 246, 0.2);
+      width: 90%; max-width: 400px; text-align: center;
     }
-
-    .login-box h2 { margin-bottom: 20px; color: var(--primary-purple); }
-
-    .input-group { margin-bottom: 15px; text-align: left; }
-    .input-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 14px; }
+    .input-group { margin-bottom: 20px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
     .input-group input {
-      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333;
-      background: #0f0c1b; color: white; outline: none; transition: 0.3s;
+      width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333;
+      background: var(--bg-dark); color: white; outline: none; transition: 0.3s;
     }
-    .input-group input:focus { border-color: var(--primary-purple); box-shadow: 0 0 8px var(--purple-glow); }
-
-    .btn-primary {
-      width: 100%; padding: 12px; border: none; border-radius: 8px;
-      background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white;
-      font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px;
-    }
-    .btn-primary:hover:not(:disabled) { box-shadow: 0 5px 15px var(--purple-glow); transform: translateY(-2px); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    #error-message { color: #ff4b4b; margin-top: 15px; font-size: 14px; min-height: 20px; }
-
-    /* --- TELA PRINCIPAL (DASHBOARD) --- */
-    #dashboard-screen { display: none; padding: 20px; }
+    .input-group input:focus { border-color: var(--primary-purple); box-shadow: 0 0 12px var(--purple-glow); }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .menu-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+    .btn-primary {
+      width: 100%; padding: 15px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
+      color: white; font-weight: bold; font-size: 16px; transition: all 0.3s ease;
+    }
+    .btn-primary:hover { box-shadow: 0 8px 25px var(--purple-glow); transform: translateY(-2px); }
+
+    /* 3. TELA PRINCIPAL & MENU LATERAL */
+    #app-container { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .icon-btn { background: none; border: none; color: white; font-size: 26px; padding: 5px; }
     
     #sidebar {
-      position: fixed; top: 0; left: -250px; width: 250px; height: 100vh;
-      background: var(--bg-card); border-right: 1px solid rgba(139, 92, 246, 0.2);
-      transition: 0.3s ease-in-out; padding: 20px; z-index: 1000;
+      position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+      background: var(--bg-card-elevated); border-right: 1px solid rgba(139, 92, 246, 0.2);
+      transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px 20px; z-index: 10000;
     }
-    #sidebar.active { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
-    #sidebar a { display: block; color: var(--text-main); text-decoration: none; margin: 20px 0; font-size: 16px; }
-    .close-menu { background: none; border: none; color: white; font-size: 24px; cursor: pointer; float: right; }
+    #sidebar.active { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
+    #sidebar a { display: block; color: var(--text-main); text-decoration: none; margin: 25px 0; font-size: 18px; transition: 0.2s;}
+    #sidebar a:hover { color: var(--primary-purple); }
+    .overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.6);
+      z-index: 9999; display: none; opacity: 0; transition: opacity 0.3s;
+    }
+    .overlay.active { display: block; opacity: 1; }
 
-    /* Seleção de Perfil */
-    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-card); padding: 5px; border-radius: 12px;}
-    .tab { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: 0.3s; }
-    .tab.active { background: var(--primary-purple); color: white; box-shadow: 0 4px 10px var(--purple-glow); }
+    /* 4. ABAS DE PERFIL */
+    .profile-tabs { display: flex; background: var(--bg-card); padding: 6px; border-radius: 16px; margin-bottom: 30px;}
+    .tab { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); border-radius: 12px; transition: 0.3s; font-weight: 600; }
+    .tab.active { background: var(--primary-purple); color: white; box-shadow: 0 4px 15px var(--purple-glow); }
 
-    /* Carrossel e Cards */
-    .cards-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scroll-snap-type: x mandatory; perspective: 1000px; }
+    /* 5. CARROSSEL 3D VERDADEIRO */
+    .carousel-section { position: relative; height: 220px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
+    .carousel-track { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; display: flex; justify-content: center; align-items: center; }
+    
     .card-3d {
-      min-width: 280px; background: linear-gradient(135deg, #1a162b, #2e1e54);
-      border-radius: var(--border-radius); padding: 20px; scroll-snap-align: center;
-      border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-      transition: transform 0.5s ease;
+      position: absolute; width: 300px; height: 180px; border-radius: var(--border-radius);
+      background: linear-gradient(135deg, var(--bg-card-elevated), #261b40);
+      border: 1px solid rgba(139, 92, 246, 0.3); padding: 25px;
+      transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center;
+      /* Previne que cards de trás bloqueiem cliques */
+      pointer-events: none; opacity: 0;
     }
-    .card-3d:hover { transform: translateY(-5px); box-shadow: 0 15px 35px var(--purple-glow); }
-    .card-value { font-size: 28px; font-weight: bold; margin: 10px 0; color: white; }
+    /* O card ativo pode ser clicado */
+    .card-3d.active { pointer-events: auto; opacity: 1; }
+    
+    .card-value { font-size: 32px; font-weight: bold; margin: 10px 0; color: white; }
 
-    /* Metas */
-    .goals-section { margin-top: 30px; }
-    .goal-card { background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(139, 92, 246, 0.1); }
-    .progress-bar-bg { background: #333; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-    .progress-fill { background: var(--primary-purple); height: 100%; border-radius: 4px; box-shadow: 0 0 10px var(--purple-glow); }
+    /* Controles do Carrossel */
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.1); border: none; color: white; font-size: 24px;
+      width: 40px; height: 40px; border-radius: 50%; z-index: 20; backdrop-filter: blur(5px);
+    }
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+    
+    .carousel-dots { position: absolute; bottom: -25px; display: flex; gap: 8px; z-index: 20;}
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); transition: 0.3s; }
+    .dot.active { background: var(--primary-purple); width: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--purple-glow); }
+
+    /* 6. BOTÕES DE AÇÃO RÁPIDA */
+    .action-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
+    .btn-action {
+      flex: 1; padding: 15px; border-radius: 16px; border: none; font-weight: bold; color: white;
+      display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;
+    }
+    .btn-income { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .btn-expense { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* 7. SEÇÃO DE METAS (Com dados reais do planejamento) */
+    .goals-section h3 { margin-bottom: 20px; color: white; font-size: 20px; }
+    .goal-card { background: var(--bg-card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(139, 92, 246, 0.1); }
+    .goal-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .progress-bar-bg { background: var(--bg-dark); height: 10px; border-radius: 5px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, var(--secondary-purple), var(--primary-purple)); height: 100%; border-radius: 5px; box-shadow: 0 0 10px var(--purple-glow); }
+
+    /* 8. MODAL (Pop-ups de Interação) */
+    .modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      background: var(--bg-card-elevated); padding: 30px; border-radius: var(--border-radius);
+      width: 90%; max-width: 500px; z-index: 10001; opacity: 0; pointer-events: none;
+      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(139, 92, 246, 0.3);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+    }
+    .modal.active { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
   <div id="login-screen">
     <div class="login-box">
-      <h2>Finanças Inteligentes</h2>
+      <h2 style="color: var(--primary-purple); margin-bottom: 30px;">Finanças Premium</h2>
       <form id="login-form">
         <div class="input-group">
           <label>E-mail</label>
-          <input type="email" id="email" required placeholder="seu@email.com">
+          <input type="email" id="email" required>
         </div>
         <div class="input-group">
           <label>Senha</label>
-          <input type="password" id="password" required placeholder="••••••••">
+          <input type="password" id="password" required>
         </div>
-        <button type="submit" class="btn-primary" id="submit-btn">Entrar na Conta</button>
-        <div id="error-message"></div>
+        <button type="submit" class="btn-primary" id="submit-btn">Acessar Sistema</button>
+        <p id="error-message" style="color: var(--danger); margin-top: 15px; font-size: 14px;"></p>
       </form>
     </div>
   </div>
 
+  <div class="overlay" id="global-overlay"></div>
+
   <aside id="sidebar">
-    <button class="close-menu" id="close-menu-btn">×</button>
-    <h3 style="color: var(--primary-purple); margin-top: 30px; margin-bottom: 20px;">Menu</h3>
-    <a href="#">⚙️ Configurações</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+      <h3 style="color: var(--primary-purple);">Configurações</h3>
+      <button class="icon-btn" id="close-menu-btn">✕</button>
+    </div>
+    <a href="#" id="btn-settings">⚙️ Ajustes da Conta</a>
     <a href="#">📊 Gerenciar Categorias</a>
-    <a href="#">🔄 Contas Recorrentes</a>
-    <a href="#">⬇️ Exportar Dados</a>
-    <a href="#" id="logout-btn" style="color: #ff4b4b;">🚪 Sair</a>
+    <a href="#">⬇️ Exportar Relatório</a>
+    <a href="#" id="btn-toggle-theme">🌓 Alternar Tema</a>
+    <a href="#" id="logout-btn" style="color: var(--danger); margin-top: auto;">🚪 Desconectar</a>
   </aside>
 
-  <div id="dashboard-screen">
+  <div id="app-container">
     <header>
-      <button class="menu-btn" id="open-menu-btn">☰</button>
-      <h3>Visão Geral</h3>
-      <div style="width: 24px;"></div>
+      <button class="icon-btn" id="open-menu-btn">☰</button>
+      <h2>Dashboard</h2>
+      <button class="icon-btn" id="btn-notifications">🔔</button>
     </header>
 
-    <div class="profile-tabs">
-      <button class="tab active">Caroline</button>
-      <button class="tab">Marlon</button>
-      <button class="tab">Nossa</button>
+    <div class="profile-tabs" id="profile-tabs">
+      <button class="tab active" data-view="caroline">Caroline</button>
+      <button class="tab" data-view="marlon">Marlon</button>
+      <button class="tab" data-view="nossa">Nossa</button>
     </div>
 
-    <div class="cards-container">
-      <div class="card-3d">
-        <p style="color: var(--text-muted)">Saldo Atual</p>
-        <div class="card-value">R$ 4.250,00</div>
-        <p style="font-size: 12px; color: #10b981;">↑ Previsibilidade Alta</p>
-      </div>
-      <div class="card-3d">
-        <p style="color: var(--text-muted)">Despesas do Mês</p>
-        <div class="card-value" style="color: #ff4b4b;">R$ 1.840,00</div>
-        <p style="font-size: 12px; color: var(--text-muted)">Fixas: 60% | Var: 40%</p>
-      </div>
+    <div class="carousel-section" id="finance-carousel">
+      <button class="carousel-btn prev" id="car-prev">‹</button>
+      
+      <div class="carousel-track" id="carousel-track">
+        </div>
+      
+      <button class="carousel-btn next" id="car-next">›</button>
+      <div class="carousel-dots" id="carousel-dots"></div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-action btn-income" id="btn-add-income">➕ Receita</button>
+      <button class="btn-action btn-expense" id="btn-add-expense">➖ Despesa</button>
     </div>
 
     <div class="goals-section">
-      <h3 style="margin-bottom: 15px;">Planejamento de Longo Prazo</h3>
+      <h3>Planejamento & Metas</h3>
       
       <div class="goal-card">
-        <div style="display: flex; justify-content: space-between;">
-          <span>Casamento</span>
-          <span style="color: var(--primary-purple);">70%</span>
+        <div class="goal-header">
+          <span style="font-weight: 600;">Casamento (Ago/2026)</span>
+          <span style="color: var(--primary-purple); font-weight: bold;">R$ 15.000 / R$ 50.000</span>
         </div>
-        <div class="progress-bar-bg"><div class="progress-fill" style="width: 70%;"></div></div>
+        <div class="progress-bar-bg"><div class="progress-fill" style="width: 30%;"></div></div>
       </div>
 
       <div class="goal-card">
-        <div style="display: flex; justify-content: space-between;">
-          <span>Amortização do Financiamento</span>
-          <span style="color: var(--primary-purple);">12%</span>
+        <div class="goal-header">
+          <span style="font-weight: 600;">Amortização Financiamento (R$ 152k - 300x)</span>
+          <span style="color: var(--primary-purple); font-weight: bold;">R$ 12.000 / R$ 152.000</span>
         </div>
-        <div class="progress-bar-bg"><div class="progress-fill" style="width: 12%;"></div></div>
+        <div class="progress-bar-bg"><div class="progress-fill" style="width: 8%;"></div></div>
       </div>
     </div>
   </div>
 
+  <div class="modal" id="modal-transaction">
+    <div class="modal-header">
+      <h3 id="modal-title">Nova Transação</h3>
+      <button class="icon-btn close-modal" style="color: var(--text-muted)">✕</button>
+    </div>
+    <div class="input-group">
+      <label>Valor (R$)</label>
+      <input type="number" placeholder="0,00">
+    </div>
+    <div class="input-group">
+      <label>Descrição</label>
+      <input type="text" placeholder="Ex: Mercado">
+    </div>
+    <button class="btn-primary">Salvar Transação</button>
+  </div>
+
   <script>
-    // ELEMENTOS DA INTERFACE
-    const loginScreen = document.getElementById('login-screen');
-    const dashboardScreen = document.getElementById('dashboard-screen');
-    const loginForm = document.getElementById('login-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const errorMessage = document.getElementById('error-message');
-    
-    // Elementos do Menu
-    const sidebar = document.getElementById('sidebar');
-    const openMenuBtn = document.getElementById('open-menu-btn');
-    const closeMenuBtn = document.getElementById('close-menu-btn');
-    const logoutBtn = document.getElementById('logout-btn');
+    /**
+     * SISTEMA FINANCEIRO PREMIUM - ARQUITETURA JS
+     * Estruturado com Padrão de Classes para máxima escalabilidade e organização.
+     * NENHUM evento é disparado antes do DOM estar 100% carregado.
+     */
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      // 1. CLASSE DO CARROSSEL 3D
+      class Carousel3D {
+        constructor() {
+          this.track = document.getElementById('carousel-track');
+          this.dotsContainer = document.getElementById('carousel-dots');
+          this.currentIndex = 0;
+          this.startX = 0;
+          this.isDragging = false;
+          
+          this.cardsData = [
+            { title: "Saldo Geral", value: "R$ 4.250,00", subtitle: "Total Acumulado", color: "var(--text-main)" },
+            { title: "Entradas", value: "R$ 8.500,00", subtitle: "Mês atual", color: "var(--success)" },
+            { title: "Saídas", value: "R$ 4.250,00", subtitle: "Mês atual", color: "var(--danger)" }
+          ];
 
-    // 1. MONITORAMENTO DE AUTENTICAÇÃO (Usa a variável 'auth' do firebase-config.js)
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        loginScreen.style.display = 'none';
-        dashboardScreen.style.display = 'block';
-        console.log("Usuário logado:", user.uid);
-      } else {
-        loginScreen.style.display = 'flex';
-        dashboardScreen.style.display = 'none';
-        sidebar.classList.remove('active');
-      }
-    });
-
-    // 2. LÓGICA DE LOGIN COM TRATAMENTO DE ERROS
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); 
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Autenticando...';
-      errorMessage.innerText = '';
-
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-      } catch (error) {
-        console.error("Erro no login:", error);
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-          errorMessage.innerText = 'E-mail ou senha incorretos.';
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMessage.innerText = 'Muitas tentativas. Tente novamente mais tarde.';
-        } else {
-          errorMessage.innerText = 'Erro ao conectar. Verifique seus dados.';
+          this.init();
         }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Entrar na Conta';
+
+        init() {
+          this.renderCards();
+          this.updateCarousel();
+          this.bindEvents();
+        }
+
+        renderCards() {
+          this.track.innerHTML = '';
+          this.dotsContainer.innerHTML = '';
+
+          this.cardsData.forEach((data, index) => {
+            // Cria Cards
+            const card = document.createElement('div');
+            card.className = 'card-3d';
+            card.innerHTML = `
+              <p style="color: var(--text-muted)">${data.title}</p>
+              <div class="card-value" style="color: ${data.color}">${data.value}</div>
+              <p style="font-size: 13px; color: var(--text-muted)">${data.subtitle}</p>
+            `;
+            this.track.appendChild(card);
+
+            // Cria Dots
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.addEventListener('click', () => this.goTo(index));
+            this.dotsContainer.appendChild(dot);
+          });
+          this.cards = document.querySelectorAll('.card-3d');
+          this.dots = document.querySelectorAll('.dot');
+        }
+
+        updateCarousel() {
+          this.cards.forEach((card, index) => {
+            card.classList.remove('active');
+            let offset = index - this.currentIndex;
+            
+            // Matemática do 3D
+            if (offset === 0) {
+              // Centro
+              card.style.transform = `translateX(0) translateZ(0) rotateY(0)`;
+              card.style.opacity = '1';
+              card.classList.add('active'); // Habilita pointer-events
+            } else if (offset === 1 || offset === -2) {
+              // Direita
+              card.style.transform = `translateX(60%) translateZ(-150px) rotateY(-15deg)`;
+              card.style.opacity = '0.6';
+            } else if (offset === -1 || offset === 2) {
+              // Esquerda
+              card.style.transform = `translateX(-60%) translateZ(-150px) rotateY(15deg)`;
+              card.style.opacity = '0.6';
+            }
+          });
+
+          this.dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === this.currentIndex);
+          });
+        }
+
+        next() {
+          this.currentIndex = (this.currentIndex + 1) % this.cardsData.length;
+          this.updateCarousel();
+        }
+
+        prev() {
+          this.currentIndex = (this.currentIndex - 1 + this.cardsData.length) % this.cardsData.length;
+          this.updateCarousel();
+        }
+
+        goTo(index) {
+          this.currentIndex = index;
+          this.updateCarousel();
+        }
+
+        bindEvents() {
+          document.getElementById('car-next').addEventListener('click', () => this.next());
+          document.getElementById('car-prev').addEventListener('click', () => this.prev());
+
+          // Suporte a Swipe (Toque e Mouse restrito APENAS ao carrossel)
+          const carouselSection = document.getElementById('finance-carousel');
+          
+          const touchStart = (e) => { this.startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX; this.isDragging = true; };
+          const touchEnd = (e) => {
+            if (!this.isDragging) return;
+            const endX = e.type.includes('mouse') ? e.pageX : e.changedTouches[0].clientX;
+            const diffX = this.startX - endX;
+            if (diffX > 50) this.next();
+            else if (diffX < -50) this.prev();
+            this.isDragging = false;
+          };
+
+          carouselSection.addEventListener('touchstart', touchStart, {passive: true});
+          carouselSection.addEventListener('touchend', touchEnd);
+          carouselSection.addEventListener('mousedown', touchStart);
+          carouselSection.addEventListener('mouseup', touchEnd);
+          carouselSection.addEventListener('mouseleave', () => { this.isDragging = false; });
+        }
       }
-    });
 
-    // 3. LÓGICA DO MENU E LOGOUT
-    openMenuBtn.addEventListener('click', () => sidebar.classList.add('active'));
-    closeMenuBtn.addEventListener('click', () => sidebar.classList.remove('active'));
+      // 2. GERENCIADOR DE UI (Eventos e Modais)
+      class UIManager {
+        constructor() {
+          this.overlay = document.getElementById('global-overlay');
+          this.sidebar = document.getElementById('sidebar');
+          this.modalTransaction = document.getElementById('modal-transaction');
+          this.bindGlobalEvents();
+        }
 
-    logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      try {
-        await auth.signOut();
-      } catch (error) {
-        console.error("Erro ao fazer logout:", error);
+        toggleSidebar(show) {
+          if (show) {
+            this.sidebar.classList.add('active');
+            this.overlay.classList.add('active');
+          } else {
+            this.sidebar.classList.remove('active');
+            this.overlay.classList.remove('active');
+          }
+        }
+
+        openModal(type) {
+          document.getElementById('modal-title').innerText = type === 'income' ? 'Nova Receita' : 'Nova Despesa';
+          this.modalTransaction.classList.add('active');
+          this.overlay.classList.add('active');
+          // Garante que a sidebar feche se o modal abrir
+          this.sidebar.classList.remove('active');
+        }
+
+        closeAll() {
+          this.toggleSidebar(false);
+          this.modalTransaction.classList.remove('active');
+        }
+
+        bindGlobalEvents() {
+          // Menu Hambúrguer
+          document.getElementById('open-menu-btn').addEventListener('click', () => this.toggleSidebar(true));
+          document.getElementById('close-menu-btn').addEventListener('click', () => this.toggleSidebar(false));
+          
+          // Overlay fecha tudo
+          this.overlay.addEventListener('click', () => this.closeAll());
+
+          // Botões de Ação (+ Receita, - Despesa)
+          document.getElementById('btn-add-income').addEventListener('click', () => this.openModal('income'));
+          document.getElementById('btn-add-expense').addEventListener('click', () => this.openModal('expense'));
+
+          // Fechar Modal
+          document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => this.closeAll());
+          });
+
+          // Lógica das Abas (Caroline, Marlon, Nossa)
+          const tabs = document.querySelectorAll('.tab');
+          tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+              tabs.forEach(t => t.classList.remove('active'));
+              e.target.classList.add('active');
+              console.log("Filtro alterado para:", e.target.dataset.view);
+              // Futuramente: Chamar função do Firestore para recarregar dados
+            });
+          });
+
+          // Teste de botões avulsos do menu
+          document.getElementById('btn-settings').addEventListener('click', () => {
+             alert('Menu de configurações acionado com sucesso!');
+             this.closeAll();
+          });
+        }
       }
-    });
 
-    // 4. LÓGICA BÁSICA DAS ABAS (Caroline / Marlon / Nossa)
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        console.log("Alterando visão para:", tab.innerText);
-      });
+      // 3. INICIALIZAÇÃO DO SISTEMA
+      const appUI = new UIManager();
+      const carousel = new Carousel3D();
+
+      // 4. LÓGICA DE AUTENTICAÇÃO
+      if (typeof auth !== 'undefined') {
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            console.log("Bem-vindo(a) ao sistema. UID:", user.uid);
+          } else {
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+            appUI.closeAll();
+          }
+        });
+
+        // Formulário de Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('submit-btn');
+          const errorMsg = document.getElementById('error-message');
+          btn.disabled = true; btn.innerText = "Verificando..."; errorMsg.innerText = "";
+          
+          try {
+            await auth.signInWithEmailAndPassword(
+              document.getElementById('email').value,
+              document.getElementById('password').value
+            );
+          } catch (error) {
+            errorMsg.innerText = "Credenciais inválidas. Tente novamente.";
+          } finally {
+            btn.disabled = false; btn.innerText = "Acessar Sistema";
+          }
+        });
+
+        // Botão Logout
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+          e.preventDefault();
+          auth.signOut();
+        });
+      }
     });
   </script>
 </body>
