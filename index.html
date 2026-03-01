@@ -1,224 +1,256 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Era | Financeiro Premium</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Financeiro Inteligente</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script src="firebase-config.js"></script>
+
+  <style>
+    /* VARIÁVEIS DO TEMA PREMIUM DARK/ROXO */
+    :root {
+      --bg-dark: #0f0c1b;
+      --bg-card: #1a162b;
+      --primary-purple: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.4);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+
+    /* --- TELA DE LOGIN --- */
+    #login-screen {
+      display: flex; justify-content: center; align-items: center; height: 100vh;
+      background: radial-gradient(circle at center, #1a162b 0%, #0f0c1b 100%);
+    }
+
+    .login-box {
+      background: var(--bg-card); padding: 40px; border-radius: var(--border-radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.2);
+      width: 100%; max-width: 400px; text-align: center;
+    }
+
+    .login-box h2 { margin-bottom: 20px; color: var(--primary-purple); }
+
+    .input-group { margin-bottom: 15px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 14px; }
+    .input-group input {
+      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333;
+      background: #0f0c1b; color: white; outline: none; transition: 0.3s;
+    }
+    .input-group input:focus { border-color: var(--primary-purple); box-shadow: 0 0 8px var(--purple-glow); }
+
+    .btn-primary {
+      width: 100%; padding: 12px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white;
+      font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px;
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 5px 15px var(--purple-glow); transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    #error-message { color: #ff4b4b; margin-top: 15px; font-size: 14px; min-height: 20px; }
+
+    /* --- TELA PRINCIPAL (DASHBOARD) --- */
+    #dashboard-screen { display: none; padding: 20px; }
     
-    <script src="firebase-config.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .menu-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
     
-    <style>
-        :root {
-            --primary: #a855f7;
-            --primary-dark: #7e22ce;
-            --bg: #030303;
-            --card-bg: rgba(18, 18, 23, 0.85);
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --glow: 0 0 20px rgba(168, 85, 247, 0.3);
-            --success: #22c55e;
-            --danger: #ef4444;
-        }
+    #sidebar {
+      position: fixed; top: 0; left: -250px; width: 250px; height: 100vh;
+      background: var(--bg-card); border-right: 1px solid rgba(139, 92, 246, 0.2);
+      transition: 0.3s ease-in-out; padding: 20px; z-index: 1000;
+    }
+    #sidebar.active { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+    #sidebar a { display: block; color: var(--text-main); text-decoration: none; margin: 20px 0; font-size: 16px; }
+    .close-menu { background: none; border: none; color: white; font-size: 24px; cursor: pointer; float: right; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+    /* Seleção de Perfil */
+    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-card); padding: 5px; border-radius: 12px;}
+    .tab { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: 0.3s; }
+    .tab.active { background: var(--primary-purple); color: white; box-shadow: 0 4px 10px var(--purple-glow); }
 
-        /* --- TELA DE LOGIN --- */
-        #auth-screen {
-            position: fixed; inset: 0; z-index: 9999; background: var(--bg);
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        .auth-card {
-            background: var(--card-bg); padding: 40px; border-radius: 30px;
-            border: 1px solid rgba(168, 85, 247, 0.2); backdrop-filter: blur(20px);
-            width: 90%; max-width: 380px; text-align: center; box-shadow: var(--glow);
-        }
-        .auth-card h2 { margin-bottom: 25px; font-weight: 800; color: #fff; }
-        input {
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
-            border: 1px solid #1e1e26; background: #000; color: white; outline: none;
-        }
-        .btn-premium {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white; border: none; padding: 16px; width: 100%; border-radius: 12px;
-            cursor: pointer; font-weight: 600; margin-top: 15px; box-shadow: var(--glow);
-        }
-        #error-msg { color: var(--danger); font-size: 13px; margin-top: 15px; display: none; }
+    /* Carrossel e Cards */
+    .cards-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scroll-snap-type: x mandatory; perspective: 1000px; }
+    .card-3d {
+      min-width: 280px; background: linear-gradient(135deg, #1a162b, #2e1e54);
+      border-radius: var(--border-radius); padding: 20px; scroll-snap-align: center;
+      border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      transition: transform 0.5s ease;
+    }
+    .card-3d:hover { transform: translateY(-5px); box-shadow: 0 15px 35px var(--purple-glow); }
+    .card-value { font-size: 28px; font-weight: bold; margin: 10px 0; color: white; }
 
-        /* --- LAYOUT 3D --- */
-        #app-content { display: none; }
-        .menu-trigger { position: fixed; top: 25px; left: 25px; z-index: 1000; cursor: pointer; font-size: 24px; color: var(--primary); }
-        
-        .sidebar {
-            position: fixed; top: 0; left: -300px; width: 280px; height: 100%;
-            background: rgba(10, 10, 15, 0.98); z-index: 1001; transition: 0.4s;
-            padding: 80px 20px; border-right: 1px solid var(--primary-dark);
-        }
-        .sidebar.active { left: 0; }
-
-        .scene { width: 100vw; height: 100vh; perspective: 2000px; display: flex; justify-content: center; align-items: center; }
-        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
-        
-        .face { position: absolute; width: 100vw; height: 100vh; padding: 100px 8% 40px 8%; backface-visibility: hidden; overflow-y: auto; }
-        .face-front  { transform: rotateY(0deg) translateZ(50vw); }
-        .face-right  { transform: rotateY(90deg) translateZ(50vw); }
-        .face-back   { transform: rotateY(180deg) translateZ(50vw); }
-        .face-left   { transform: rotateY(-90deg) translateZ(50vw); }
-
-        .glass-card {
-            background: var(--card-bg); border-radius: 20px; padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .progress-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin: 10px 0; }
-        .progress-fill { height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-    </style>
+    /* Metas */
+    .goals-section { margin-top: 30px; }
+    .goal-card { background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(139, 92, 246, 0.1); }
+    .progress-bar-bg { background: #333; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+    .progress-fill { background: var(--primary-purple); height: 100%; border-radius: 4px; box-shadow: 0 0 10px var(--purple-glow); }
+  </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h2>Acesso Casal</h2>
-            <input type="email" id="email" placeholder="E-mail">
-            <input type="password" id="password" placeholder="Senha">
-            <button class="btn-premium" onclick="login()">Entrar no Sistema</button>
-            <div id="error-msg"></div>
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>Finanças Inteligentes</h2>
+      <form id="login-form">
+        <div class="input-group">
+          <label>E-mail</label>
+          <input type="email" id="email" required placeholder="seu@email.com">
         </div>
+        <div class="input-group">
+          <label>Senha</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">Entrar na Conta</button>
+        <div id="error-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <aside id="sidebar">
+    <button class="close-menu" id="close-menu-btn">×</button>
+    <h3 style="color: var(--primary-purple); margin-top: 30px; margin-bottom: 20px;">Menu</h3>
+    <a href="#">⚙️ Configurações</a>
+    <a href="#">📊 Gerenciar Categorias</a>
+    <a href="#">🔄 Contas Recorrentes</a>
+    <a href="#">⬇️ Exportar Dados</a>
+    <a href="#" id="logout-btn" style="color: #ff4b4b;">🚪 Sair</a>
+  </aside>
+
+  <div id="dashboard-screen">
+    <header>
+      <button class="menu-btn" id="open-menu-btn">☰</button>
+      <h3>Visão Geral</h3>
+      <div style="width: 24px;"></div>
+    </header>
+
+    <div class="profile-tabs">
+      <button class="tab active">Caroline</button>
+      <button class="tab">Marlon</button>
+      <button class="tab">Nossa</button>
     </div>
 
-    <div id="app-content">
-        <div class="menu-trigger" onclick="toggleSidebar()">☰</div>
-        
-        <div class="sidebar" id="sidebar">
-            <div style="color: var(--primary); margin-bottom: 20px; font-weight: bold;">CONFIGURAÇÕES</div>
-            <div onclick="logout()" style="color: var(--danger); cursor: pointer;">✕ Sair do App</div>
-        </div>
-
-        <div class="scene">
-            <div class="cube" id="cube">
-                <div class="face face-front">
-                    <h1 style="font-size: 32px; margin-bottom: 20px;">Resumo do Mês</h1>
-                    <div class="glass-card">
-                        <p>Livre para Gastar</p>
-                        <h2 style="color: var(--success); font-size: 36px;">R$ 4.500,00</h2>
-                    </div>
-                    <canvas id="chart1" style="max-height: 250px;"></canvas>
-                </div>
-
-                <div class="face face-right">
-                    <h1>Nossas Metas</h1>
-                    <div class="glass-card">
-                        <h3>Fundo de Emergência</h3>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
-                        <p style="font-size: 12px;">75% Concluído</p>
-                    </div>
-                </div>
-
-                <div class="face face-back">
-                    <h1>Histórico</h1>
-                    <div class="glass-card">Mercado - R$ 250,00 (Ontem)</div>
-                    <div class="glass-card">Luz - R$ 180,00 (Pendente)</div>
-                </div>
-
-                <div class="face face-left">
-                    <h1>Área do Casal</h1>
-                    <div class="glass-card">
-                        <h3>Quem gastou mais?</h3>
-                        <p>Você: 45% | Ela: 55%</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="cards-container">
+      <div class="card-3d">
+        <p style="color: var(--text-muted)">Saldo Atual</p>
+        <div class="card-value">R$ 4.250,00</div>
+        <p style="font-size: 12px; color: #10b981;">↑ Previsibilidade Alta</p>
+      </div>
+      <div class="card-3d">
+        <p style="color: var(--text-muted)">Despesas do Mês</p>
+        <div class="card-value" style="color: #ff4b4b;">R$ 1.840,00</div>
+        <p style="font-size: 12px; color: var(--text-muted)">Fixas: 60% | Var: 40%</p>
+      </div>
     </div>
 
-    <script>
-        // --- FUNÇÕES DE LOGIN (Sintaxe v8) ---
-        function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error-msg');
-            const btn = document.querySelector('.btn-premium');
+    <div class="goals-section">
+      <h3 style="margin-bottom: 15px;">Planejamento de Longo Prazo</h3>
+      
+      <div class="goal-card">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Casamento</span>
+          <span style="color: var(--primary-purple);">70%</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-fill" style="width: 70%;"></div></div>
+      </div>
 
-            btn.innerText = "Verificando...";
-            btn.disabled = true;
+      <div class="goal-card">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Amortização do Financiamento</span>
+          <span style="color: var(--primary-purple);">12%</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-fill" style="width: 12%;"></div></div>
+      </div>
+    </div>
+  </div>
 
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then((userCredential) => {
-                    console.log("Logado com sucesso!");
-                })
-                .catch((error) => {
-                    errorDiv.style.display = "block";
-                    errorDiv.innerText = "Erro: Email ou senha inválidos.";
-                    btn.innerText = "Entrar no Sistema";
-                    btn.disabled = false;
-                });
+  <script>
+    // ELEMENTOS DA INTERFACE
+    const loginScreen = document.getElementById('login-screen');
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const loginForm = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Elementos do Menu
+    const sidebar = document.getElementById('sidebar');
+    const openMenuBtn = document.getElementById('open-menu-btn');
+    const closeMenuBtn = document.getElementById('close-menu-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // 1. MONITORAMENTO DE AUTENTICAÇÃO (Usa a variável 'auth' do firebase-config.js)
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        loginScreen.style.display = 'none';
+        dashboardScreen.style.display = 'block';
+        console.log("Usuário logado:", user.uid);
+      } else {
+        loginScreen.style.display = 'flex';
+        dashboardScreen.style.display = 'none';
+        sidebar.classList.remove('active');
+      }
+    });
+
+    // 2. LÓGICA DE LOGIN COM TRATAMENTO DE ERROS
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); 
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Autenticando...';
+      errorMessage.innerText = '';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (error) {
+        console.error("Erro no login:", error);
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          errorMessage.innerText = 'E-mail ou senha incorretos.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMessage.innerText = 'Muitas tentativas. Tente novamente mais tarde.';
+        } else {
+          errorMessage.innerText = 'Erro ao conectar. Verifique seus dados.';
         }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Entrar na Conta';
+      }
+    });
 
-        function logout() {
-            firebase.auth().signOut();
-        }
+    // 3. LÓGICA DO MENU E LOGOUT
+    openMenuBtn.addEventListener('click', () => sidebar.classList.add('active'));
+    closeMenuBtn.addEventListener('click', () => sidebar.classList.remove('active'));
 
-        // --- OBSERVAR ESTADO DO USUÁRIO ---
-        firebase.auth().onAuthStateChanged((user) => {
-            const authScreen = document.getElementById('auth-screen');
-            const appContent = document.getElementById('app-content');
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await auth.signOut();
+      } catch (error) {
+        console.error("Erro ao fazer logout:", error);
+      }
+    });
 
-            if (user) {
-                authScreen.style.opacity = '0';
-                setTimeout(() => {
-                    authScreen.style.display = 'none';
-                    appContent.style.display = 'block';
-                    renderCharts();
-                }, 500);
-            } else {
-                authScreen.style.display = 'flex';
-                appContent.style.display = 'none';
-                authScreen.style.opacity = '1';
-                document.querySelector('.btn-premium').disabled = false;
-                document.querySelector('.btn-premium').innerText = "Entrar no Sistema";
-            }
-        });
-
-        // --- NAVEGAÇÃO 3D ---
-        let currentAngle = 0;
-        const cube = document.getElementById('cube');
-
-        window.addEventListener('wheel', (e) => {
-            if (e.deltaY > 0) currentAngle -= 90;
-            else currentAngle += 90;
-            cube.style.transform = `rotateY(${currentAngle}deg)`;
-        }, { passive: true });
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-
-        // --- GRÁFICOS ---
-        function renderCharts() {
-            const ctx = document.getElementById('chart1').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Contas', 'Lazer', 'Investimento'],
-                    datasets: [{
-                        data: [2000, 800, 1700],
-                        backgroundColor: ['#a855f7', '#7e22ce', '#3b0764'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { 
-                    plugins: { legend: { labels: { color: '#fff' } } }
-                }
-            });
-        }
-    </script>
+    // 4. LÓGICA BÁSICA DAS ABAS (Caroline / Marlon / Nossa)
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        console.log("Alterando visão para:", tab.innerText);
+      });
+    });
+  </script>
 </body>
 </html>
