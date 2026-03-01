@@ -1,209 +1,227 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alinha - Base Financeira</title>
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#0f1117;
-  color:white;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Financeiro Premium 3D</title>
+    <style>
+        /* Reset e Fontes */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0b0c10; color: #ffffff; overflow: hidden; }
 
-.hidden{display:none;}
+        /* Cena 3D e Container */
+        .scene {
+            width: 100vw;
+            height: 100vh;
+            perspective: 1200px; /* Define a profundidade do 3D */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-section{padding:20px;}
+        .cube {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            transform-style: preserve-3d;
+            /* Transição suave usando Curva Bezier para sensação premium */
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: translateZ(-50vw); 
+        }
 
-h1,h2,h3{margin-top:0;}
+        /* As Faces do Cubo (Telas do App) */
+        .face {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            /* Efeito Glassmorphism */
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-input,select,button{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:8px;
-  border:none;
-}
+        /* Posicionamento 3D das Faces */
+        .face-front  { transform: rotateY(0deg) translateZ(50vw); }
+        .face-right  { transform: rotateY(90deg) translateZ(50vw); }
+        .face-back   { transform: rotateY(180deg) translateZ(50vw); }
+        .face-left   { transform: rotateY(-90deg) translateZ(50vw); }
 
-button{
-  background:#4f7cff;
-  color:white;
-  cursor:pointer;
-}
+        /* Estilização Interna das Telas */
+        header { margin-bottom: 30px; text-align: center; }
+        h1 { font-size: 24px; font-weight: 600; letter-spacing: 1px; color: #4facfe; }
+        h2 { font-size: 16px; font-weight: 400; color: #888; text-transform: uppercase; }
+        
+        .card {
+            background: rgba(30, 32, 40, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-.card{
-  background:rgba(255,255,255,0.05);
-  padding:15px;
-  border-radius:12px;
-  margin-top:20px;
-}
+        .highlight { font-size: 36px; font-weight: bold; color: #00f2fe; margin: 10px 0; }
 
-ul{
-  list-style:none;
-  padding:0;
-}
+        /* Controles de Navegação (Para o Desktop) */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100; /* Fica acima do cubo */
+        }
 
-progress{
-  width:100%;
-  height:12px;
-}
-</style>
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* Botão Flutuante Principal (Adicionar Despesa) */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 242, 254, 0.4);
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .fab:hover { transform: scale(1.1); }
+    </style>
 </head>
 <body>
 
-<section id="login-screen">
-  <h1>Alinha</h1>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Senha">
-  <button id="login-btn">Entrar</button>
-  <button id="register-btn">Criar Conta</button>
-</section>
+    <div class="fab">+</div>
 
-<section id="dashboard" class="hidden">
-  <h2>Painel Futuro</h2>
-  <button id="logout-btn">Sair</button>
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="rotateCube(1)">❮ Swipe Esq</button>
+        <button class="nav-btn" onclick="rotateCube(-1)">Swipe Dir ❯</button>
+    </div>
 
-  <div class="card">
-    <h3>Adicionar Conta Futura</h3>
-    <input type="text" id="bill-name" placeholder="Nome da Conta">
-    <input type="number" id="bill-value" placeholder="Valor">
-    <input type="date" id="bill-date">
-    <select id="bill-type">
-      <option value="mensal">Mensal</option>
-      <option value="anual">Anual</option>
-      <option value="unica">Única</option>
-    </select>
-    <button id="add-bill">Salvar</button>
-  </div>
+    <div class="scene">
+        <div class="cube" id="cube">
+            
+            <div class="face face-front">
+                <header>
+                    <h2>Meu Hub</h2>
+                    <h1>Livre para Gastar</h1>
+                </header>
+                <div class="card" style="text-align: center;">
+                    <p style="color: #aaa;">Restante até dia 30</p>
+                    <div class="highlight">R$ 1.240,00</div>
+                    <p style="font-size: 14px; color: #4facfe;">Todas as contas fixas já provisionadas</p>
+                </div>
+                <div class="card">
+                    <h3>Próximos Vencimentos</h3>
+                    <p style="margin-top: 10px; color: #ff6b6b;">• Luz (Amanhã) - R$ 180,00</p>
+                    <p style="margin-top: 10px; color: #aaa;">• Internet (Dia 15) - R$ 120,00</p>
+                </div>
+            </div>
 
-  <div class="card">
-    <h3>Próximas Contas</h3>
-    <ul id="future-list"></ul>
-  </div>
+            <div class="face face-right">
+                <header>
+                    <h2>Previsibilidade</h2>
+                    <h1>Agenda Anual</h1>
+                </header>
+                <div class="card">
+                    <h3>Dezembro 2026</h3>
+                    <p style="margin-top: 10px; color: #aaa;">• Seguro do Carro (Anual) - R$ 2.000</p>
+                    <p style="margin-top: 10px; color: #aaa;">• IPTU Parcela Única - R$ 800</p>
+                </div>
+            </div>
 
-  <div class="card">
-    <h3>Cofre de Meta</h3>
-    <input type="text" id="goal-name" placeholder="Nome da Meta">
-    <input type="number" id="goal-target" placeholder="Valor Meta">
-    <input type="number" id="goal-current" placeholder="Valor Atual">
-    <button id="add-goal">Criar Meta</button>
-    <div id="goals-list"></div>
-  </div>
-</section>
+            <div class="face face-back">
+                <header>
+                    <h2>Visão Compartilhada</h2>
+                    <h1>Nossas Finanças</h1>
+                </header>
+                <div class="card">
+                    <h3>Caixinha de Acertos</h3>
+                    <p style="margin-top: 10px;">Você pagou: R$ 3.000</p>
+                    <p style="margin-top: 10px;">Ela pagou: R$ 2.500</p>
+                    <div class="highlight" style="font-size: 20px; color: #f9ca24; margin-top: 15px;">
+                        Ela deve R$ 250,00 para igualar
+                    </div>
+                </div>
+            </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+            <div class="face face-left">
+                <header>
+                    <h2>Análise & Metas</h2>
+                    <h1>Raio-X</h1>
+                </header>
+                <div class="card">
+                    <h3>Progresso: Fundo de Emergência</h3>
+                    <div style="width: 100%; height: 10px; background: #333; border-radius: 5px; margin-top: 10px;">
+                        <div style="width: 65%; height: 100%; background: #00f2fe; border-radius: 5px;"></div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 14px; color: #aaa;">65% concluído (R$ 6.500 / R$ 10.000)</p>
+                </div>
+            </div>
 
-<!-- Seu arquivo de configuração -->
-<script src="firebase-config.js"></script>
+        </div>
+    </div>
 
-<!-- App JS -->
-<script>
-const loginScreen = document.getElementById("login-screen");
-const dashboard = document.getElementById("dashboard");
+    <script>
+        let currentAngle = 0;
+        const cube = document.getElementById('cube');
 
-const loginBtn = document.getElementById("login-btn");
-const registerBtn = document.getElementById("register-btn");
-const logoutBtn = document.getElementById("logout-btn");
+        // Função para girar o cubo
+        function rotateCube(direction) {
+            // Se direction for 1, gira para esquerda. Se -1, direita.
+            currentAngle += direction * 90;
+            // translateZ negativo afasta o cubo para ele girar no eixo central
+            cube.style.transform = `translateZ(-50vw) rotateY(${currentAngle}deg)`;
+        }
 
-const addBillBtn = document.getElementById("add-bill");
-const futureList = document.getElementById("future-list");
+        // Adiciona suporte básico para rolar o Scroll do Mouse (Wheel)
+        window.addEventListener('wheel', (e) => {
+            if(e.deltaY > 0) {
+                rotateCube(-1); // Rola para baixo -> gira pra direita
+            } else {
+                rotateCube(1);  // Rola para cima -> gira pra esquerda
+            }
+        }, { passive: true });
 
-const addGoalBtn = document.getElementById("add-goal");
-const goalsList = document.getElementById("goals-list");
+        // Adiciona suporte para Swipe no Celular (Touch)
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-let currentUser = null;
+        window.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
 
-// LOGIN
-registerBtn.onclick = async () => {
-  await firebase.auth().createUserWithEmailAndPassword(
-    document.getElementById("email").value,
-    document.getElementById("password").value
-  );
-};
+        window.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
 
-loginBtn.onclick = async () => {
-  await firebase.auth().signInWithEmailAndPassword(
-    document.getElementById("email").value,
-    document.getElementById("password").value
-  );
-};
-
-logoutBtn.onclick = async () => {
-  await firebase.auth().signOut();
-};
-
-// Detecta login
-firebase.auth().onAuthStateChanged(user => {
-  if(user){
-    currentUser = user;
-    loginScreen.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-    loadBills();
-    loadGoals();
-  }else{
-    loginScreen.classList.remove("hidden");
-    dashboard.classList.add("hidden");
-  }
-});
-
-// CONTAS FUTURAS
-addBillBtn.onclick = async () => {
-  await firebase.firestore().collection("futureBills").add({
-    userId: currentUser.uid,
-    name: document.getElementById("bill-name").value,
-    value: parseFloat(document.getElementById("bill-value").value),
-    date: document.getElementById("bill-date").value,
-    type: document.getElementById("bill-type").value
-  });
-  loadBills();
-};
-
-async function loadBills(){
-  futureList.innerHTML="";
-  const snapshot = await firebase.firestore().collection("futureBills")
-    .where("userId","==",currentUser.uid).get();
-
-  snapshot.forEach(doc=>{
-    const data = doc.data();
-    const li = document.createElement("li");
-    li.innerHTML = `${data.name} - R$ ${data.value} - ${data.date}`;
-    futureList.appendChild(li);
-  });
-}
-
-// METAS
-addGoalBtn.onclick = async () => {
-  await firebase.firestore().collection("goals").add({
-    userId: currentUser.uid,
-    name: document.getElementById("goal-name").value,
-    target: parseFloat(document.getElementById("goal-target").value),
-    current: parseFloat(document.getElementById("goal-current").value)
-  });
-  loadGoals();
-};
-
-async function loadGoals(){
-  goalsList.innerHTML="";
-  const snapshot = await firebase.firestore().collection("goals")
-    .where("userId","==",currentUser.uid).get();
-
-  snapshot.forEach(doc=>{
-    const data = doc.data();
-    const percent = ((data.current/data.target)*100).toFixed(1);
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>${data.name}</p>
-      <p>${percent}% concluído</p>
-      <progress value="${data.current}" max="${data.target}"></progress>
-    `;
-    goalsList.appendChild(div);
-  });
-}
-</script>
-
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) rotateCube(-1); // Swipe esquerda
+            if (touchEndX > touchStartX + 50) rotateCube(1);  // Swipe direita
+        }
+    </script>
 </body>
 </html>
