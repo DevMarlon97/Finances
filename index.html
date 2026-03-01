@@ -11,7 +11,9 @@
   <script src="firebase-config.js"></script>
 
   <style>
-    /* 1. VARIÁVEIS DO TEMA PREMIUM */
+    /* =========================================
+       1. VARIÁVEIS DO TEMA PREMIUM DARK/ROXO
+       ========================================= */
     :root {
       --bg-dark: #09070f;
       --bg-card: #151123;
@@ -30,135 +32,154 @@
     
     body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
 
-    /* Correção do bloqueio de tela: Garante que os botões sempre fiquem acima */
+    /* Correção Global: Garante que elementos interativos sejam clicáveis */
     button, a, input, select { position: relative; z-index: 10; cursor: pointer; }
 
-    /* 2. TELA DE LOGIN (Oculta por padrão via JS se logado) */
+    /* =========================================
+       2. TELA DE LOGIN 
+       ========================================= */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
       background: radial-gradient(circle at center, var(--bg-card) 0%, var(--bg-dark) 100%);
       display: flex; justify-content: center; align-items: center; z-index: 9999;
     }
+    
     .login-box {
       background: var(--bg-card); padding: 40px; border-radius: var(--border-radius);
       box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid rgba(139, 92, 246, 0.2);
       width: 90%; max-width: 400px; text-align: center;
     }
+    
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
-    .input-group input {
+    .input-group input, .input-group select {
       width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333;
       background: var(--bg-dark); color: white; outline: none; transition: 0.3s;
     }
-    .input-group input:focus { border-color: var(--primary-purple); box-shadow: 0 0 12px var(--purple-glow); }
+    .input-group input:focus, .input-group select:focus { border-color: var(--primary-purple); box-shadow: 0 0 12px var(--purple-glow); }
     
     .btn-primary {
       width: 100%; padding: 15px; border: none; border-radius: 12px;
       background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
       color: white; font-weight: bold; font-size: 16px; transition: all 0.3s ease;
     }
-    .btn-primary:hover { box-shadow: 0 8px 25px var(--purple-glow); transform: translateY(-2px); }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 25px var(--purple-glow); transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* 3. TELA PRINCIPAL & MENU LATERAL */
+    /* =========================================
+       3. TELA PRINCIPAL & MENU LATERAL
+       ========================================= */
     #app-container { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .icon-btn { background: none; border: none; color: white; font-size: 26px; padding: 5px; }
+    .icon-btn { background: none; border: none; color: white; font-size: 26px; padding: 5px; transition: 0.2s; }
+    .icon-btn:hover { color: var(--primary-purple); transform: scale(1.1); }
     
     #sidebar {
       position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
       background: var(--bg-card-elevated); border-right: 1px solid rgba(139, 92, 246, 0.2);
       transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px 20px; z-index: 10000;
+      display: flex; flex-direction: column;
     }
     #sidebar.active { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
-    #sidebar a { display: block; color: var(--text-main); text-decoration: none; margin: 25px 0; font-size: 18px; transition: 0.2s;}
-    #sidebar a:hover { color: var(--primary-purple); }
+    #sidebar a { display: block; color: var(--text-main); text-decoration: none; margin: 20px 0; font-size: 16px; transition: 0.2s;}
+    #sidebar a:hover { color: var(--primary-purple); padding-left: 5px; }
+    
     .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.6);
-      z-index: 9999; display: none; opacity: 0; transition: opacity 0.3s;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(3px); z-index: 9998; display: none; opacity: 0; transition: opacity 0.3s;
     }
     .overlay.active { display: block; opacity: 1; }
 
-    /* 4. ABAS DE PERFIL */
+    /* =========================================
+       4. ABAS DE PERFIL (Caroline, Marlon, Nossa)
+       ========================================= */
     .profile-tabs { display: flex; background: var(--bg-card); padding: 6px; border-radius: 16px; margin-bottom: 30px;}
     .tab { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); border-radius: 12px; transition: 0.3s; font-weight: 600; }
     .tab.active { background: var(--primary-purple); color: white; box-shadow: 0 4px 15px var(--purple-glow); }
 
-    /* 5. CARROSSEL 3D VERDADEIRO */
-    .carousel-section { position: relative; height: 220px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
+    /* =========================================
+       5. CARROSSEL 3D VERDADEIRO
+       ========================================= */
+    .carousel-section { position: relative; height: 240px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
     .carousel-track { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; display: flex; justify-content: center; align-items: center; }
     
     .card-3d {
-      position: absolute; width: 300px; height: 180px; border-radius: var(--border-radius);
+      position: absolute; width: 320px; height: 190px; border-radius: var(--border-radius);
       background: linear-gradient(135deg, var(--bg-card-elevated), #261b40);
       border: 1px solid rgba(139, 92, 246, 0.3); padding: 25px;
-      transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease;
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease, box-shadow 0.6s ease;
       box-shadow: 0 15px 35px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center;
-      /* Previne que cards de trás bloqueiem cliques */
+      /* Oculta os cards inativos para não roubarem o clique */
       pointer-events: none; opacity: 0;
     }
-    /* O card ativo pode ser clicado */
-    .card-3d.active { pointer-events: auto; opacity: 1; }
+    .card-3d.active { pointer-events: auto; opacity: 1; z-index: 50; }
     
-    .card-value { font-size: 32px; font-weight: bold; margin: 10px 0; color: white; }
+    .card-value { font-size: 36px; font-weight: bold; margin: 10px 0; color: white; letter-spacing: -1px; }
 
-    /* Controles do Carrossel */
     .carousel-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255,255,255,0.1); border: none; color: white; font-size: 24px;
-      width: 40px; height: 40px; border-radius: 50%; z-index: 20; backdrop-filter: blur(5px);
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 20px;
+      width: 44px; height: 44px; border-radius: 50%; z-index: 60; backdrop-filter: blur(5px); transition: 0.3s;
     }
-    .carousel-btn.prev { left: 10px; }
-    .carousel-btn.next { right: 10px; }
+    .carousel-btn:hover { background: var(--primary-purple); border-color: var(--primary-purple); }
+    .carousel-btn.prev { left: 0; }
+    .carousel-btn.next { right: 0; }
     
-    .carousel-dots { position: absolute; bottom: -25px; display: flex; gap: 8px; z-index: 20;}
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); transition: 0.3s; }
+    .carousel-dots { position: absolute; bottom: -20px; display: flex; gap: 8px; z-index: 60;}
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; transition: 0.3s; cursor: pointer; }
     .dot.active { background: var(--primary-purple); width: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--purple-glow); }
 
-    /* 6. BOTÕES DE AÇÃO RÁPIDA */
-    .action-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
+    /* =========================================
+       6. AÇÕES RÁPIDAS & METAS
+       ========================================= */
+    .action-buttons { display: flex; gap: 15px; margin-bottom: 35px; }
     .btn-action {
-      flex: 1; padding: 15px; border-radius: 16px; border: none; font-weight: bold; color: white;
-      display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;
+      flex: 1; padding: 16px; border-radius: 16px; border: none; font-weight: bold; color: white;
+      display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; font-size: 15px;
     }
     .btn-income { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .btn-income:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-3px); }
     .btn-expense { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .btn-expense:hover { background: rgba(239, 68, 68, 0.25); transform: translateY(-3px); }
 
-    /* 7. SEÇÃO DE METAS (Com dados reais do planejamento) */
-    .goals-section h3 { margin-bottom: 20px; color: white; font-size: 20px; }
-    .goal-card { background: var(--bg-card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(139, 92, 246, 0.1); }
-    .goal-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .progress-bar-bg { background: var(--bg-dark); height: 10px; border-radius: 5px; overflow: hidden; }
-    .progress-fill { background: linear-gradient(90deg, var(--secondary-purple), var(--primary-purple)); height: 100%; border-radius: 5px; box-shadow: 0 0 10px var(--purple-glow); }
+    .goals-section h3 { margin-bottom: 20px; color: white; font-size: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .goal-card { background: var(--bg-card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(139, 92, 246, 0.1); transition: 0.3s; }
+    .goal-card:hover { border-color: var(--primary-purple); transform: translateX(5px); }
+    .goal-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+    .progress-bar-bg { background: var(--bg-dark); height: 8px; border-radius: 4px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, var(--secondary-purple), var(--primary-purple)); height: 100%; border-radius: 4px; box-shadow: 0 0 10px var(--purple-glow); transition: width 1s ease-in-out; }
 
-    /* 8. MODAL (Pop-ups de Interação) */
+    /* =========================================
+       7. JANELAS MODAIS (Pop-ups)
+       ========================================= */
     .modal {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.95);
       background: var(--bg-card-elevated); padding: 30px; border-radius: var(--border-radius);
-      width: 90%; max-width: 500px; z-index: 10001; opacity: 0; pointer-events: none;
-      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(139, 92, 246, 0.3);
+      width: 90%; max-width: 450px; z-index: 10001; opacity: 0; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(139, 92, 246, 0.3);
       box-shadow: 0 25px 50px rgba(0,0,0,0.8);
     }
     .modal.active { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
   </style>
 </head>
 <body>
 
   <div id="login-screen">
     <div class="login-box">
-      <h2 style="color: var(--primary-purple); margin-bottom: 30px;">Finanças Premium</h2>
+      <h2 style="color: var(--primary-purple); margin-bottom: 30px;">Finanças Inteligentes</h2>
       <form id="login-form">
         <div class="input-group">
           <label>E-mail</label>
-          <input type="email" id="email" required>
+          <input type="email" id="email" required placeholder="seu@email.com">
         </div>
         <div class="input-group">
           <label>Senha</label>
-          <input type="password" id="password" required>
+          <input type="password" id="password" required placeholder="••••••••">
         </div>
         <button type="submit" class="btn-primary" id="submit-btn">Acessar Sistema</button>
-        <p id="error-message" style="color: var(--danger); margin-top: 15px; font-size: 14px;"></p>
+        <p id="error-message" style="color: var(--danger); margin-top: 15px; font-size: 14px; min-height: 20px;"></p>
       </form>
     </div>
   </div>
@@ -166,21 +187,25 @@
   <div class="overlay" id="global-overlay"></div>
 
   <aside id="sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-      <h3 style="color: var(--primary-purple);">Configurações</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <h3 style="color: var(--primary-purple);">Menu</h3>
       <button class="icon-btn" id="close-menu-btn">✕</button>
     </div>
     <a href="#" id="btn-settings">⚙️ Ajustes da Conta</a>
     <a href="#">📊 Gerenciar Categorias</a>
+    <a href="#">🔄 Transações Recorrentes</a>
     <a href="#">⬇️ Exportar Relatório</a>
     <a href="#" id="btn-toggle-theme">🌓 Alternar Tema</a>
-    <a href="#" id="logout-btn" style="color: var(--danger); margin-top: auto;">🚪 Desconectar</a>
+    
+    <div style="margin-top: auto;">
+      <a href="#" id="logout-btn" style="color: var(--danger);">🚪 Desconectar Sistema</a>
+    </div>
   </aside>
 
   <div id="app-container">
     <header>
       <button class="icon-btn" id="open-menu-btn">☰</button>
-      <h2>Dashboard</h2>
+      <h2>Painel Geral</h2>
       <button class="icon-btn" id="btn-notifications">🔔</button>
     </header>
 
@@ -192,34 +217,32 @@
 
     <div class="carousel-section" id="finance-carousel">
       <button class="carousel-btn prev" id="car-prev">‹</button>
-      
       <div class="carousel-track" id="carousel-track">
         </div>
-      
       <button class="carousel-btn next" id="car-next">›</button>
       <div class="carousel-dots" id="carousel-dots"></div>
     </div>
 
     <div class="action-buttons">
-      <button class="btn-action btn-income" id="btn-add-income">➕ Receita</button>
-      <button class="btn-action btn-expense" id="btn-add-expense">➖ Despesa</button>
+      <button class="btn-action btn-income" id="btn-add-income">➕ Nova Receita</button>
+      <button class="btn-action btn-expense" id="btn-add-expense">➖ Nova Despesa</button>
     </div>
 
     <div class="goals-section">
-      <h3>Planejamento & Metas</h3>
+      <h3>Planejamento Estratégico</h3>
       
       <div class="goal-card">
         <div class="goal-header">
           <span style="font-weight: 600;">Casamento (Ago/2026)</span>
-          <span style="color: var(--primary-purple); font-weight: bold;">R$ 15.000 / R$ 50.000</span>
+          <span style="color: var(--primary-purple); font-weight: bold;">Meta: R$ 50.000</span>
         </div>
         <div class="progress-bar-bg"><div class="progress-fill" style="width: 30%;"></div></div>
       </div>
 
       <div class="goal-card">
         <div class="goal-header">
-          <span style="font-weight: 600;">Amortização Financiamento (R$ 152k - 300x)</span>
-          <span style="color: var(--primary-purple); font-weight: bold;">R$ 12.000 / R$ 152.000</span>
+          <span style="font-weight: 600;">Amortização (Saldo R$ 152k)</span>
+          <span style="color: var(--primary-purple); font-weight: bold;">Alvo: R$ 12.000</span>
         </div>
         <div class="progress-bar-bg"><div class="progress-fill" style="width: 8%;"></div></div>
       </div>
@@ -231,26 +254,41 @@
       <h3 id="modal-title">Nova Transação</h3>
       <button class="icon-btn close-modal" style="color: var(--text-muted)">✕</button>
     </div>
-    <div class="input-group">
-      <label>Valor (R$)</label>
-      <input type="number" placeholder="0,00">
-    </div>
-    <div class="input-group">
-      <label>Descrição</label>
-      <input type="text" placeholder="Ex: Mercado">
-    </div>
-    <button class="btn-primary">Salvar Transação</button>
+    
+    <form id="transaction-form">
+      <div class="input-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="trans-amount" step="0.01" required placeholder="0.00">
+      </div>
+      <div class="input-group">
+        <label>Descrição</label>
+        <input type="text" id="trans-desc" required placeholder="Ex: Conta de Luz">
+      </div>
+      <div class="input-group">
+        <label>Categoria</label>
+        <select id="trans-category">
+          <option value="fixa">Despesa Fixa</option>
+          <option value="variavel">Despesa Variável</option>
+          <option value="lazer">Lazer / Extras</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Atribuir a</label>
+        <select id="trans-owner">
+          <option value="caroline">Caroline</option>
+          <option value="marlon">Marlon</option>
+          <option value="nossa">Nossa</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary" id="save-trans-btn">Salvar no Histórico</button>
+    </form>
   </div>
 
   <script>
-    /**
-     * SISTEMA FINANCEIRO PREMIUM - ARQUITETURA JS
-     * Estruturado com Padrão de Classes para máxima escalabilidade e organização.
-     * NENHUM evento é disparado antes do DOM estar 100% carregado.
-     */
-    document.addEventListener("DOMContentLoaded", () => {
-      
-      // 1. CLASSE DO CARROSSEL 3D
+    document.addEventListener("DOMContentLoaded", () => {      /**
+       * 1. CLASSE DO CARROSSEL 3D REAL
+       * Gerencia posicionamento espacial, perspectiva e eventos de toque/arraste.
+       */
       class Carousel3D {
         constructor() {
           this.track = document.getElementById('carousel-track');
@@ -259,10 +297,11 @@
           this.startX = 0;
           this.isDragging = false;
           
+          // Dados iniciais (Serão atualizados pelo Firebase posteriormente)
           this.cardsData = [
-            { title: "Saldo Geral", value: "R$ 4.250,00", subtitle: "Total Acumulado", color: "var(--text-main)" },
-            { title: "Entradas", value: "R$ 8.500,00", subtitle: "Mês atual", color: "var(--success)" },
-            { title: "Saídas", value: "R$ 4.250,00", subtitle: "Mês atual", color: "var(--danger)" }
+            { title: "Saldo Disponível", value: "R$ 0,00", subtitle: "Total em conta", color: "var(--text-main)" },
+            { title: "Entradas", value: "R$ 0,00", subtitle: "Receitas do mês", color: "var(--success)" },
+            { title: "Saídas", value: "R$ 0,00", subtitle: "Despesas do mês", color: "var(--danger)" }
           ];
 
           this.init();
@@ -279,17 +318,15 @@
           this.dotsContainer.innerHTML = '';
 
           this.cardsData.forEach((data, index) => {
-            // Cria Cards
             const card = document.createElement('div');
             card.className = 'card-3d';
             card.innerHTML = `
-              <p style="color: var(--text-muted)">${data.title}</p>
+              <p style="color: var(--text-muted); font-size: 14px;">${data.title}</p>
               <div class="card-value" style="color: ${data.color}">${data.value}</div>
-              <p style="font-size: 13px; color: var(--text-muted)">${data.subtitle}</p>
+              <p style="font-size: 12px; color: var(--text-muted)">${data.subtitle}</p>
             `;
             this.track.appendChild(card);
 
-            // Cria Dots
             const dot = document.createElement('div');
             dot.className = 'dot';
             dot.addEventListener('click', () => this.goTo(index));
@@ -304,20 +341,23 @@
             card.classList.remove('active');
             let offset = index - this.currentIndex;
             
-            // Matemática do 3D
+            // Lógica de loop infinito para o posicionamento visual
+            if (offset > 1) offset -= this.cardsData.length;
+            if (offset < -1) offset += this.cardsData.length;
+
             if (offset === 0) {
-              // Centro
               card.style.transform = `translateX(0) translateZ(0) rotateY(0)`;
               card.style.opacity = '1';
-              card.classList.add('active'); // Habilita pointer-events
-            } else if (offset === 1 || offset === -2) {
-              // Direita
-              card.style.transform = `translateX(60%) translateZ(-150px) rotateY(-15deg)`;
-              card.style.opacity = '0.6';
-            } else if (offset === -1 || offset === 2) {
-              // Esquerda
-              card.style.transform = `translateX(-60%) translateZ(-150px) rotateY(15deg)`;
-              card.style.opacity = '0.6';
+              card.classList.add('active'); // Único card que aceita cliques
+            } else if (offset === 1) {
+              card.style.transform = `translateX(65%) translateZ(-200px) rotateY(-25deg)`;
+              card.style.opacity = '0.4';
+            } else if (offset === -1) {
+              card.style.transform = `translateX(-65%) translateZ(-200px) rotateY(25deg)`;
+              card.style.opacity = '0.4';
+            } else {
+              card.style.opacity = '0';
+              card.style.transform = `translateZ(-500px)`;
             }
           });
 
@@ -341,142 +381,199 @@
           this.updateCarousel();
         }
 
-        bindEvents() {
-          document.getElementById('car-next').addEventListener('click', () => this.next());
-          document.getElementById('car-prev').addEventListener('click', () => this.prev());
+        updateValues(income, expense) {
+          const balance = income - expense;
+          this.cardsData[0].value = `R$ ${balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+          this.cardsData[1].value = `R$ ${income.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+          this.cardsData[2].value = `R$ ${expense.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+          this.renderCards();
+          this.updateCarousel();
+        }
 
-          // Suporte a Swipe (Toque e Mouse restrito APENAS ao carrossel)
-          const carouselSection = document.getElementById('finance-carousel');
+        bindEvents() {
+          // Navegação por botões
+          document.getElementById('car-next').onclick = (e) => { e.stopPropagation(); this.next(); };
+          document.getElementById('car-prev').onclick = (e) => { e.stopPropagation(); this.prev(); };
+
+          // Interação de Arraste (Touch e Mouse)
+          const section = document.getElementById('finance-carousel');
           
-          const touchStart = (e) => { this.startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX; this.isDragging = true; };
-          const touchEnd = (e) => {
+          const start = (e) => {
+            this.isDragging = true;
+            this.startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+          };
+
+          const end = (e) => {
             if (!this.isDragging) return;
             const endX = e.type.includes('mouse') ? e.pageX : e.changedTouches[0].clientX;
-            const diffX = this.startX - endX;
-            if (diffX > 50) this.next();
-            else if (diffX < -50) this.prev();
+            const diff = this.startX - endX;
+            if (Math.abs(diff) > 50) {
+              if (diff > 0) this.next();
+              else this.prev();
+            }
             this.isDragging = false;
           };
 
-          carouselSection.addEventListener('touchstart', touchStart, {passive: true});
-          carouselSection.addEventListener('touchend', touchEnd);
-          carouselSection.addEventListener('mousedown', touchStart);
-          carouselSection.addEventListener('mouseup', touchEnd);
-          carouselSection.addEventListener('mouseleave', () => { this.isDragging = false; });
+          section.onmousedown = start;
+          section.onmouseup = end;
+          section.ontouchstart = start;
+          section.ontouchend = end;
         }
       }
 
-      // 2. GERENCIADOR DE UI (Eventos e Modais)
+      /**
+       * 2. GERENCIADOR DE INTERAÇÕES (UI)
+       * Centraliza o controle de modais, menus e eventos globais.
+       */
       class UIManager {
         constructor() {
           this.overlay = document.getElementById('global-overlay');
           this.sidebar = document.getElementById('sidebar');
-          this.modalTransaction = document.getElementById('modal-transaction');
-          this.bindGlobalEvents();
+          this.modalTrans = document.getElementById('modal-transaction');
+          this.init();
         }
 
-        toggleSidebar(show) {
-          if (show) {
-            this.sidebar.classList.add('active');
-            this.overlay.classList.add('active');
-          } else {
-            this.sidebar.classList.remove('active');
-            this.overlay.classList.remove('active');
-          }
+        init() {
+          this.bindEvents();
         }
 
-        openModal(type) {
-          document.getElementById('modal-title').innerText = type === 'income' ? 'Nova Receita' : 'Nova Despesa';
-          this.modalTransaction.classList.add('active');
+        bindEvents() {
+          // Menu Lateral
+          document.getElementById('open-menu-btn').onclick = () => this.toggleSidebar(true);
+          document.getElementById('close-menu-btn').onclick = () => this.toggleSidebar(false);
+          this.overlay.onclick = () => this.closeAll();
+
+          // Modais de Transação
+          document.getElementById('btn-add-income').onclick = () => this.openModal('Receita');
+          document.getElementById('btn-add-expense').onclick = () => this.openModal('Despesa');
+          
+          document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.onclick = () => this.closeAll();
+          });
+
+          // Abas de Filtro
+          document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = (e) => {
+              document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+              e.target.classList.add('active');
+              const view = e.target.dataset.view;
+              // Evento customizado para o App recarregar dados do Firebase
+              window.dispatchEvent(new CustomEvent('viewChanged', { detail: view }));
+            };
+          });
+
+          // Botão Logout
+          document.getElementById('logout-btn').onclick = () => auth.signOut();
+        }
+
+        toggleSidebar(active) {
+          this.sidebar.classList.toggle('active', active);
+          this.overlay.classList.toggle('active', active);
+        }
+
+        openModal(title) {
+          document.getElementById('modal-title').innerText = `Nova ${title}`;
+          this.modalTrans.classList.add('active');
           this.overlay.classList.add('active');
-          // Garante que a sidebar feche se o modal abrir
-          this.sidebar.classList.remove('active');
         }
 
         closeAll() {
-          this.toggleSidebar(false);
-          this.modalTransaction.classList.remove('active');
-        }
-
-        bindGlobalEvents() {
-          // Menu Hambúrguer
-          document.getElementById('open-menu-btn').addEventListener('click', () => this.toggleSidebar(true));
-          document.getElementById('close-menu-btn').addEventListener('click', () => this.toggleSidebar(false));
-          
-          // Overlay fecha tudo
-          this.overlay.addEventListener('click', () => this.closeAll());
-
-          // Botões de Ação (+ Receita, - Despesa)
-          document.getElementById('btn-add-income').addEventListener('click', () => this.openModal('income'));
-          document.getElementById('btn-add-expense').addEventListener('click', () => this.openModal('expense'));
-
-          // Fechar Modal
-          document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => this.closeAll());
-          });
-
-          // Lógica das Abas (Caroline, Marlon, Nossa)
-          const tabs = document.querySelectorAll('.tab');
-          tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-              tabs.forEach(t => t.classList.remove('active'));
-              e.target.classList.add('active');
-              console.log("Filtro alterado para:", e.target.dataset.view);
-              // Futuramente: Chamar função do Firestore para recarregar dados
-            });
-          });
-
-          // Teste de botões avulsos do menu
-          document.getElementById('btn-settings').addEventListener('click', () => {
-             alert('Menu de configurações acionado com sucesso!');
-             this.closeAll();
-          });
+          this.sidebar.classList.remove('active');
+          this.modalTrans.classList.remove('active');
+          this.overlay.classList.remove('active');
         }
       }
 
-      // 3. INICIALIZAÇÃO DO SISTEMA
-      const appUI = new UIManager();
+      /**
+       * 3. NÚCLEO DO SISTEMA (Firebase & Fluxo de Dados)
+       */
+      const ui = new UIManager();
       const carousel = new Carousel3D();
+      let currentView = 'caroline';
 
-      // 4. LÓGICA DE AUTENTICAÇÃO
-      if (typeof auth !== 'undefined') {
-        auth.onAuthStateChanged((user) => {
-          if (user) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-container').style.display = 'block';
-            console.log("Bem-vindo(a) ao sistema. UID:", user.uid);
-          } else {
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('app-container').style.display = 'none';
-            appUI.closeAll();
-          }
-        });
+      // Listener de autenticação
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app-container').style.display = 'block';
+          loadData();
+        } else {
+          document.getElementById('login-screen').style.display = 'flex';
+          document.getElementById('app-container').style.display = 'none';
+        }
+      });
 
-        // Formulário de Login
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const btn = document.getElementById('submit-btn');
-          const errorMsg = document.getElementById('error-message');
-          btn.disabled = true; btn.innerText = "Verificando..."; errorMsg.innerText = "";
-          
-          try {
-            await auth.signInWithEmailAndPassword(
-              document.getElementById('email').value,
-              document.getElementById('password').value
-            );
-          } catch (error) {
-            errorMsg.innerText = "Credenciais inválidas. Tente novamente.";
-          } finally {
-            btn.disabled = false; btn.innerText = "Acessar Sistema";
-          }
-        });
+      // Formulário de Login
+      document.getElementById('login-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        const err = document.getElementById('error-message');
+        btn.disabled = true; btn.innerText = "Autenticando...";
+        
+        try {
+          await auth.signInWithEmailAndPassword(
+            document.getElementById('email').value,
+            document.getElementById('password').value
+          );
+        } catch (error) {
+          err.innerText = "Erro ao acessar. Verifique e-mail e senha.";
+          btn.disabled = false; btn.innerText = "Acessar Sistema";
+        }
+      };
 
-        // Botão Logout
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-          e.preventDefault();
-          auth.signOut();
-        });
+      // Gravação de Transação no Firestore
+      document.getElementById('transaction-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const data = {
+          amount: parseFloat(document.getElementById('trans-amount').value),
+          description: document.getElementById('trans-desc').value,
+          category: document.getElementById('trans-category').value,
+          owner: document.getElementById('trans-owner').value,
+          type: document.getElementById('modal-title').innerText.includes('Receita') ? 'income' : 'expense',
+          date: new Date(),
+          uid: user.uid
+        };
+
+        try {
+          await db.collection('transactions').add(data);
+          ui.closeAll();
+          e.target.reset();
+          loadData(); // Atualiza dashboard
+        } catch (err) {
+          alert("Erro ao salvar transação.");
+        }
+      };
+
+      // Carregar dados dinâmicos
+      async function loadData() {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // Filtra por UID e pelo dono selecionado na aba (Caroline, Marlon ou Nossa)
+        db.collection('transactions')
+          .where('uid', '==', user.uid)
+          .where('owner', '==', currentView)
+          .onSnapshot(snapshot => {
+            let totalInc = 0;
+            let totalExp = 0;
+            snapshot.forEach(doc => {
+              const item = doc.data();
+              if (item.type === 'income') totalInc += item.amount;
+              else totalExp += item.amount;
+            });
+            carousel.updateValues(totalInc, totalExp);
+          });
       }
+
+      // Escuta mudança de abas
+      window.addEventListener('viewChanged', (e) => {
+        currentView = e.detail;
+        loadData();
+      });
+
     });
   </script>
 </body>
