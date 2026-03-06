@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Elite - Prioridades</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">GEMSELITE</div>
+            <ul class="nav-links" style="margin-top: 2rem;">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="transacoes.html">Transações</a></li>
+                <li class="active"><a href="planejamento.html">Planejamento</a></li>
+                <li><a href="calendario-financeiro.html">Calendário</a></li>
+                <li><a href="metas.html">Metas</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header style="margin-bottom: 30px;">
+                <h1>O Porquê do seu Planejamento</h1>
+                <p style="color: var(--text-muted);">"Quem tem um porquê suporta qualquer como." — Viktor Frankl</p>
+            </header>
+
+            <div class="visionary-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+                
+                <div class="glass-panel" style="border-left: 5px solid var(--primary-cyan);">
+                    <h3 style="color: var(--primary-cyan);">💼 Identidade Profissional</h3>
+                    <p style="font-size: 0.9rem; margin: 15px 0; line-height: 1.6;">
+                        "Eu sou <strong>Caroline</strong>, uma Administradora que domina seus recursos na <strong>WEG</strong> e constrói um patrimônio sólido."
+                    </p>
+                    <div style="background: rgba(0, 245, 212, 0.05); padding: 15px; border-radius: 12px; font-style: italic; font-size: 0.85rem;">
+                        Cada lançamento feito é uma prova da sua competência técnica.
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="border-left: 5px solid var(--primary-purple);">
+                    <h3 style="color: var(--primary-purple);">💍 O Propósito Maior</h3>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <h2 id="diasCasamento" style="font-size: 3rem; margin-bottom: 5px;">---</h2>
+                        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: var(--text-muted);">
+                            Dias para o sim de <strong>29/08/2026</strong>
+                        </p>
+                    </div>
+                    <div id="visualizadorAmortizacao" style="margin-top: 25px; padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 12px; text-align: center;">
+                        <p style="font-size: 0.8rem;">O que vale mais hoje?</p>
+                        <div style="display: flex; justify-content: space-around; margin-top: 10px; font-weight: bold;">
+                            <span style="color: var(--danger-red);">Um gasto impulsivo</span>
+                            <span>OU</span>
+                            <span style="color: var(--primary-cyan);">O sonho com o Marlon</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="border-left: 5px solid var(--danger-red);">
+                    <h3 style="color: var(--danger-red);">🏠 Custo de Oportunidade</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px;">
+                        O seu financiamento consome o seu futuro. Amortizar é comprar tempo de vida.
+                    </p>
+                    <form id="formCustoOportunidade">
+                        <input type="number" id="valorExtra" placeholder="Quanto da sua liberdade você compra hoje?" step="0.01">
+                        <button type="submit" class="btn-primary" style="background: var(--danger-red); margin-top: 10px;">Comprar Liberdade</button>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/planejamento.js"></script>
+</body>
+</html>

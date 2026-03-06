@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Elite - Destiny Goals</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .countdown-box {
+            background: linear-gradient(135deg, var(--primary-purple), var(--danger-red));
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(157, 78, 221, 0.3);
+        }
+        .goal-card {
+            transition: transform 0.3s ease;
+        }
+        .goal-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">GEMSELITE</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="transacoes.html">Transações</a></li>
+                <li><a href="planejamento.html">Planejamento</a></li>
+                <li><a href="calendario-financeiro.html">Calendário</a></li>
+                <li class="active"><a href="metas.html">Metas</a></li>
+                <li style="margin-top: 30px;"><a href="#" id="resetAppBtn" style="color: var(--danger-red); font-weight: bold;">🗑️ Resetar App</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="countdown-box">
+                <h3 style="text-transform: none; color: #fff; opacity: 0.9;">Contagem Regressiva para o Sim 💍</h3>
+                <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
+                    <div><span id="countDays" style="font-size: 3rem; font-weight: bold; display: block;">000</span><small>DIAS</small></div>
+                    <div><span id="countMonths" style="font-size: 3rem; font-weight: bold; display: block;">00</span><small>MESES</small></div>
+                </div>
+                <p style="margin-top: 1rem; font-weight: bold;">29 de Agosto de 2026</p>
+            </div>
+
+            <div class="calendar-page-layout">
+                <div class="calendar-left-side">
+                    <div class="glass-panel">
+                        <h3 style="color: var(--primary-cyan); margin-bottom: 1.5rem;">⚙️ Ajustar Parâmetros</h3>
+                        <form id="formMeta">
+                            <select id="tipoMeta" required>
+                                <option value="financeira">💰 Meta Financeira (R$)</option>
+                                <option value="saude">⚖️ Meta de Saúde (Kg)</option>
+                            </select>
+                            
+                            <input type="text" id="nomeMeta" placeholder="Nome (Ex: Fundo Casamento)" required>
+                            <input type="number" id="valorObjetivo" placeholder="Objetivo Final" step="0.01" required>
+                            <input type="number" id="valorAtual" placeholder="Progresso Atual" step="0.01" required>
+                            
+                            <button type="submit" class="btn-primary">Atualizar Conquista</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="calendar-right-side" style="flex: 2;">
+                    <div id="containerMetas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                        </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/metas.js"></script>
+</body>
+</html>
