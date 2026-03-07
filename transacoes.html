@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gems Elite - Transações</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
@@ -29,9 +29,14 @@
             <div class="transactions-layout">
                 <div class="glass-panel" style="margin-bottom: 30px; border-color: var(--primary-cyan);">
                     <h3>🚀 Importação com IA (Cartão de Crédito)</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-                        Tire um print da fatura. A IA vai ler os valores e agendar todos automaticamente para o <strong>dia 11 do próximo mês</strong>.
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">
+                        Navegue nos meses da tabela abaixo para escolher onde a fatura vai cair. A IA lerá apenas os valores e nomes do print.
                     </p>
+                    
+                    <div style="background: rgba(0,245,212,0.1); border: 1px dashed var(--primary-cyan); padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">📍 Destino dos prints enviados agora:</span><br>
+                        <strong id="textoDestinoFatura" style="color: var(--primary-cyan); font-size: 1.2rem;">Carregando...</strong>
+                    </div>
                     
                     <div style="display: flex; gap: 15px; align-items: center;">
                         <label class="btn-primary" style="flex: 1; text-align: center; cursor: pointer; background: transparent; border: 2px solid var(--primary-cyan); color: var(--primary-cyan);">
@@ -49,11 +54,18 @@
                         <input type="text" id="descManual" placeholder="Descrição (ex: Padaria)" required style="flex: 2; min-width: 200px;">
                         <input type="number" id="valorManual" placeholder="Valor (R$)" step="0.01" required style="flex: 1; min-width: 120px;">
                         <select id="catManual" style="flex: 1; min-width: 150px;">
-                            <option value="💰 Conta">💰 Conta</option>
-                            <option value="🛒 Mercado">🛒 Mercado</option>
-                            <option value="🍔 Lazer/Alimentação">🍔 Lazer/Alimentação</option>
-                            <option value="🚗 Transporte">🚗 Transporte</option>
+                            <option value="🏠 Moradia / Contas">🏠 Moradia / Contas</option>
+                            <option value="🛒 Supermercado">🛒 Supermercado</option>
+                            <option value="🍔 Lanches & Delivery">🍔 Lanches & Delivery</option>
+                            <option value="⛽ Combustível">⛽ Combustível</option>
+                            <option value="🚗 Uber / Transporte">🚗 Uber / Transporte</option>
+                            <option value="💊 Saúde / Farmácia">💊 Saúde / Farmácia</option>
+                            <option value="🛍️ Compras Pessoais">🛍️ Compras Pessoais</option>
+                            <option value="📚 Educação">📚 Educação</option>
+                            <option value="💍 Casamento">💍 Casamento</option>
+                            <option value="🔄 Assinaturas">🔄 Assinaturas</option>
                             <option value="💳 Cartão de Crédito">💳 Cartão de Crédito</option>
+                            <option value="💸 Outros">💸 Outros</option>
                         </select>
                         <button type="submit" id="btnSalvarManual" class="btn-primary" style="flex: 1; min-width: 150px; margin-top: 8px;">Adicionar</button>
                         <button type="button" id="btnCancelarEdicao" class="btn-primary" style="display: none; flex: 1; min-width: 100px; margin-top: 8px; background: transparent; border: 1px solid var(--danger-red); color: var(--danger-red);">Cancelar</button>
@@ -66,7 +78,7 @@
                         
                         <div style="display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 10px; border: 1px solid var(--glass-border);">
                             <button id="btnPrevMonthTrans" style="background: none; border: none; color: var(--primary-purple); font-size: 1.2rem; cursor: pointer;">❮</button>
-                            <span id="mesAtualTituloTrans" style="font-weight: bold; color: #fff; min-width: 120px; text-align: center;">Março 2026</span>
+                            <span id="mesAtualTituloTrans" style="font-weight: bold; color: #fff; min-width: 120px; text-align: center;">...</span>
                             <button id="btnNextMonthTrans" style="background: none; border: none; color: var(--primary-purple); font-size: 1.2rem; cursor: pointer;">❯</button>
                         </div>
                     </div>
@@ -91,9 +103,8 @@
         </main>
     </div>
 
-    <script src="app.js"></script>
-    <script src="transacoes.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/calendario.js"></script>
+    <script src="js/mobile.js"></script> </body>
 </body>
-
 </html>
-
