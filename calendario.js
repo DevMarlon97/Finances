@@ -1,4 +1,3 @@
-// js/calendario.js
 document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.getElementById('calendarWrapper');
     const formRecorrente = document.getElementById('formRecorrente');
@@ -31,9 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let diaAtivoNoCard = new Date().getDate(); 
     let isMonthView = false; 
 
-    // ==========================================
-    // APAGAR EVENTO
-    // ==========================================
     window.apagarEvento = function(id) {
         if(confirm("Deseja apagar este evento do calendário?")) {
             const dados = getData();
@@ -63,9 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     }
 
-    // ==========================================
-    // RENDERIZAR O MÊS (Com layout Compacto)
-    // ==========================================
     function renderizarMesAtual(diaAlvo = null) {
         if (calendarSwiper) {
             calendarSwiper.destroy(true, true);
@@ -96,13 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let htmlItens = '';
             if (itensDoDia.length === 0) {
-                htmlItens = `<div style="text-align: center; color: var(--text-muted); margin-top: 50px; font-style: italic; font-size: 0.9rem;">Dia livre! Nada agendado.</div>`;
+                htmlItens = `<div style="text-align: center; color: var(--text-muted); margin-top: 50px; font-style: italic; font-size: 0.9rem;">Dia livre!</div>`;
             } else {
                 itensDoDia.forEach(item => {
                     const isConta = item.tipo === 'conta' || !item.tipo; 
                     const botaoHTML = `<button onclick="apagarEvento(${item.id})" style="background: none; border: none; color: var(--danger-red); font-size: 0.75rem; cursor: pointer; text-decoration: underline; margin-top: 2px;">Apagar</button>`;
 
-                    // DESIGN SUPER COMPACTO PARA CABER MUITAS TRANSAÇÕES
                     if (isConta) {
                         somaMes += item.valor;
                         qtdContasMes++;
@@ -135,17 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'swiper-slide glass-panel';
             card.dataset.diaReal = d;
             
-            // O SEGREDO DO SCROLL: flex-direction column e height 100%
             card.style.display = 'flex';
             card.style.flexDirection = 'column';
             card.style.height = '100%'; 
 
+            /* AQUI ESTÁ A CORREÇÃO: Removi a classe "swiper-no-swiping" que travava o toque no celular */
             card.innerHTML = `
                 <div style="text-align: center; margin-bottom: 10px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; flex-shrink: 0;">
                     <h2 style="font-size: 3.5rem; color: var(--primary-cyan); margin: 0;">${d}</h2>
                     <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">${nomeDia}</span>
                 </div>
-                <div class="scroll-interno swiper-no-swiping" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                <div class="scroll-interno" style="flex: 1; overflow-y: auto; padding-right: 5px;">
                     ${htmlItens}
                 </div>`;
             wrapper.appendChild(card);
@@ -159,15 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarTituloForm();
     }
 
-    // ==========================================
-    // INICIA SWIPER
-    // ==========================================
+    /* AQUI ESTÁ A CORREÇÃO NO SWIPER: Adicionado touchRatio: 1.5 para maior sensibilidade */
     function iniciarSwiper(diaAlvo) {
         calendarSwiper = new Swiper(".calendarSwiper", {
             effect: "coverflow", 
+            grabCursor: true, 
+            touchRatio: 1.5, 
             centeredSlides: true,
             slidesPerView: "auto",
-            coverflowEffect: { rotate: 0, stretch: 40, depth: 150, modifier: 1, slideShadows: false },
+            coverflowEffect: { rotate: 0, stretch: 30, depth: 100, modifier: 1, slideShadows: false },
             initialSlide: diaAlvo - 1, 
             navigation: { nextEl: ".calendar-nav-btn.swiper-button-next", prevEl: ".calendar-nav-btn.swiper-button-prev" },
             on: {
@@ -183,9 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // GRADE MENSAL
-    // ==========================================
     function renderizarGradeMes(ano, mes, diasNoMes, contas) {
         monthGrid.innerHTML = '';
         const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
@@ -249,9 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarMesAtual(1); 
     });
 
-    // ==========================================
-    // SALVAR EVENTO MANUAL NO CALENDÁRIO
-    // ==========================================
     formRecorrente.addEventListener('submit', (e) => {
         e.preventDefault();
         const dados = getData();
