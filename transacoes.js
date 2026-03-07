@@ -1,4 +1,3 @@
-// js/transacoes.js
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // SISTEMA DE FILTRO POR MÊS
@@ -10,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnPrevMonth = document.getElementById('btnPrevMonthTrans');
     const btnNextMonth = document.getElementById('btnNextMonthTrans');
+    const mesAtualTituloTrans = document.getElementById('mesAtualTituloTrans');
+    const textoDestinoFatura = document.getElementById('textoDestinoFatura');
 
     btnPrevMonth.addEventListener('click', () => {
         dataFiltro.setMonth(dataFiltro.getMonth() - 1);
@@ -21,9 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabela();
     });
 
-
     // ==========================================
-    // LEITURA DA IA (Print)
+    // LEITURA DA IA (PRINT) - OBEDECE A TELA
     // ==========================================
     const inputExtrato = document.getElementById('inputExtrato');
     const statusIA = document.getElementById('statusIA');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
-            statusIA.innerText = "⏳ A IA está decifrando a data das compras... aguarde.";
+            statusIA.innerText = "⏳ Extraindo valores do print...";
             statusIA.style.color = "var(--primary-cyan)";
 
             try {
@@ -43,81 +43,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (transacoesExtraidas.length > 0) {
                     const qtdSalvas = salvarNoSistema(transacoesExtraidas);
                     if (qtdSalvas > 0) {
-                        statusIA.innerText = `✅ ${qtdSalvas} transações agendadas para o vencimento (Dia 11)!`;
-                        
-                        // Pula a tela automaticamente para o mês da fatura lida
-                        const dataPrimeiraFatura = new Date(transacoesExtraidas[0].dataExata);
-                        dataFiltro = new Date(dataPrimeiraFatura.getFullYear(), dataPrimeiraFatura.getMonth(), 1, 12, 0, 0);
-                        
+                        statusIA.innerText = `✅ ${qtdSalvas} itens agendados com sucesso!`;
                     } else {
-                        statusIA.innerText = "⚠️ Nenhuma transação nova (todas repetidas).";
+                        statusIA.innerText = "⚠️ Itens já existentes no sistema.";
                         statusIA.style.color = "var(--text-muted)";
                     }
                     renderizarTabela(); 
                 } else {
-                    statusIA.innerText = "⚠️ O texto extraído estava confuso.";
+                    statusIA.innerText = "⚠️ Não encontrei valores válidos na imagem.";
                     statusIA.style.color = "var(--danger-red)";
                 }
             } catch (error) {
                 console.error("Erro OCR:", error);
-                statusIA.innerText = "❌ Erro ao ler a imagem.";
+                statusIA.innerText = "❌ Erro ao processar imagem.";
+                statusIA.style.color = "var(--danger-red)";
             }
             e.target.value = '';
         });
     }
 
-    // ==========================================
-    // O RADAR INTELIGENTE (Calcula Dia 11 baseado na Compra)
-    // ==========================================
+    // O RADAR BLINDADO: Não procura data, foca só em dinheiro e texto
     function processarTextoMiope(textoBruto) {
         const linhas = textoBruto.split('\n');
         const resultados = [];
-        
         const regexMoeda = /(?:R\$|RS|R\s\$)?\s*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})/i;
-        const regexData = /Data:\s*(\d{2}\/\d{2})/i;
 
-        let anoAtual = new Date().getFullYear();
+        // A MÁGICA: Usa o mês e ano que você selecionou na tela!
+        const anoVencimento = dataFiltro.getFullYear();
+        const mesVencimento = String(dataFiltro.getMonth() + 1).padStart(2, '0');
+        const dataVencimentoFinal = `${anoVencimento}-${mesVencimento}-11`;
 
         linhas.forEach(linha => {
-            let mesDaCompra = new Date().getMonth(); // Padrão é o mês atual
-            let anoDaCompra = anoAtual;
-
-            // Caça a data escrita na linha (Ex: 31/01 ou 15/02)
-            const matchData = linha.match(regexData);
-            if(matchData) {
-                const partes = matchData[1].split('/'); // partes[0] = DD, partes[1] = MM
-                mesDaCompra = parseInt(partes[1], 10) - 1; // O Javascript conta os meses de 0 a 11
-                
-                // Proteção para virada de ano (comprou em dezembro, fatura em janeiro)
-                if (mesDaCompra === 11 && new Date().getMonth() === 0) {
-                    anoDaCompra = anoAtual - 1;
-                }
-            }
-
-            // A MÁGICA: Joga a fatura SEMPRE para o mês seguinte ao da compra
-            let mesFatura = mesDaCompra + 1;
-            let anoFatura = anoDaCompra;
-
-            if (mesFatura > 11) { 
-                mesFatura = 0; // Janeiro
-                anoFatura++; 
-            }
-
-            // Crava a data pro dia 11 do mês seguinte: YYYY-MM-11
-            const dataFaturaDia11 = `${anoFatura}-${String(mesFatura + 1).padStart(2, '0')}-11`;
-
-            const match = linha.match(regexMoeda);
+            const matchMoeda = linha.match(regexMoeda);
             
-            if (match && linha.length > 5) {
-                const valorSujo = match[0];
-                const apenasNumerosStr = match[1]; 
+            if (matchMoeda && linha.length > 5) {
+                const valorSujo = matchMoeda[0];
+                const apenasNumerosStr = matchMoeda[1];
                 
                 let descricao = linha
                     .replace(valorSujo, '')
-                    .replace(regexData, '') 
+                    .replace(/Data:\s*\d{2}\/\d{2}/i, '') // Limpa a data se a IA ler
+                    .replace(/\d{2}[\/\.]\d{2}/, '') // Limpa datas perdidas
                     .replace(/R\$/g, '').replace(/RS/g, '').replace(/Parcelado.*/i, '') 
                     .trim();
-                
+
                 descricao = descricao.replace(/^[^\w]+|[^\w]+$/g, '').trim();
 
                 let valorNumerico = 0;
@@ -126,14 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (apenasNumerosStr.includes(',')) {
                     valorNumerico = parseFloat(apenasNumerosStr.replace(',', '.'));
                 } else {
-                    valorNumerico = parseFloat(apenasNumerosStr); 
+                    valorNumerico = parseFloat(apenasNumerosStr);
                 }
 
                 if (valorNumerico > 0 && descricao.length > 2 && !descricao.toLowerCase().includes('fatura')) {
                     resultados.push({
-                        descricao: descricao.substring(0, 35), 
+                        descricao: descricao.substring(0, 30).toUpperCase(),
                         valor: valorNumerico,
-                        dataExata: dataFaturaDia11, // Usa a data calculada aqui
+                        dataExata: dataVencimentoFinal,
                         categoria: "💳 Cartão de Crédito"
                     });
                 }
@@ -143,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // SISTEMA ANTI-DUPLICIDADE DE SALVAMENTO
+    // SISTEMA ANTI-DUPLICIDADE E SALVAMENTO
     // ==========================================
     function salvarNoSistema(novasTransacoes) {
         const dados = getData();
@@ -151,11 +120,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let contador = 0;
         novasTransacoes.forEach(t => {
-            const ehRepetido = dados.contas.some(c => c.valor === t.valor && c.dataExata === t.dataExata && c.descricao.toLowerCase() === t.descricao.toLowerCase());
-            let desejaSalvar = true;
+            const ehRepetido = dados.contas.some(c => 
+                c.valor === t.valor && 
+                c.dataExata === t.dataExata && 
+                c.descricao === t.descricao
+            );
 
+            let desejaSalvar = true;
             if (ehRepetido) {
-                desejaSalvar = confirm(`⚠️ Achei algo repetido: "${t.descricao}" de R$ ${t.valor}.\n\nSalvar duplicado?`);
+                desejaSalvar = confirm(`⚠️ Duplicidade detectada: "${t.descricao}" de R$ ${t.valor}.\n\nDeseja salvar mesmo assim?`);
             }
 
             if (desejaSalvar) {
@@ -175,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // LÓGICA DO FORMULÁRIO MANUAL E EDIÇÃO
+    // FORMULÁRIO MANUAL E EDIÇÃO
     // ==========================================
     const formManual = document.getElementById('formManual');
     const btnSalvarManual = document.getElementById('btnSalvarManual');
@@ -194,22 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!dados.contas) dados.contas = [];
 
             if (idEmEdicao) {
-                // MODO EDIÇÃO: Atualiza a transação existente
                 const index = dados.contas.findIndex(c => c.id === idEmEdicao);
                 if (index !== -1) {
-                    dados.contas[index].dataExata = data;
-                    dados.contas[index].descricao = desc;
-                    dados.contas[index].valor = valor;
-                    dados.contas[index].categoria = cat;
+                    dados.contas[index] = { ...dados.contas[index], dataExata: data, descricao: desc, valor: valor, categoria: cat };
                 }
                 idEmEdicao = null;
                 btnSalvarManual.innerText = "Adicionar";
-                btnSalvarManual.style.background = "var(--primary-purple)";
-                btnSalvarManual.style.color = "white";
                 btnCancelarEdicao.style.display = "none";
                 document.getElementById('tituloManual').innerText = "✍️ Adicionar Manualmente";
             } else {
-                // MODO NOVO
                 salvarNoSistema([{ descricao: desc, valor: valor, dataExata: data, categoria: cat }]);
             }
 
@@ -218,98 +184,78 @@ document.addEventListener('DOMContentLoaded', () => {
             renderizarTabela();
         });
 
-        // Cancela a edição e limpa os campos
         btnCancelarEdicao.addEventListener('click', () => {
             idEmEdicao = null;
             formManual.reset();
             btnSalvarManual.innerText = "Adicionar";
-            btnSalvarManual.style.background = "var(--primary-purple)";
-            btnSalvarManual.style.color = "white";
             btnCancelarEdicao.style.display = "none";
             document.getElementById('tituloManual').innerText = "✍️ Adicionar Manualmente";
         });
     }
 
-    // Ação do Botão Editar na Tabela
     window.editarTransacao = function(id) {
         const dados = getData();
-        const transacao = dados.contas.find(c => c.id === id);
-        
-        if (transacao) {
-            document.getElementById('dataManual').value = transacao.dataExata;
-            document.getElementById('descManual').value = transacao.descricao;
-            document.getElementById('valorManual').value = transacao.valor;
-            
-            const catSelect = document.getElementById('catManual');
-            const opcaoExiste = Array.from(catSelect.options).some(opt => opt.value === transacao.categoria);
-            catSelect.value = opcaoExiste ? transacao.categoria : "💰 Conta";
-
+        const t = (dados.contas || []).find(c => c.id === id);
+        if (t) {
+            document.getElementById('dataManual').value = t.dataExata;
+            document.getElementById('descManual').value = t.descricao;
+            document.getElementById('valorManual').value = t.valor;
+            document.getElementById('catManual').value = t.categoria || "💰 Conta";
             idEmEdicao = id;
             btnSalvarManual.innerText = "💾 Salvar Alteração";
-            btnSalvarManual.style.background = "var(--primary-cyan)";
-            btnSalvarManual.style.color = "var(--bg-dark)";
             btnCancelarEdicao.style.display = "block";
             document.getElementById('tituloManual').innerText = "✏️ Editando Transação";
-
             document.getElementById('painelManual').scrollIntoView({ behavior: 'smooth' });
         }
     }
 
     window.apagarTransacao = function(id) {
-        if(confirm("Deseja realmente excluir esta transação?")) {
+        if(confirm("Excluir esta transação?")) {
             const dados = getData();
-            if(dados.contas) {
-                dados.contas = dados.contas.filter(c => c.id !== id);
-                saveData(dados);
-                renderizarTabela(); 
-            }
+            dados.contas = (dados.contas || []).filter(c => c.id !== id);
+            saveData(dados);
+            renderizarTabela();
         }
     }
 
     // ==========================================
-    // DESENHAR TABELA (Com Filtro de Mês)
+    // RENDERIZAR TABELA E TEXTO EXPLICATIVO
     // ==========================================
     function renderizarTabela() {
         const corpoTabela = document.getElementById('corpoTabela');
-        const tituloMes = document.getElementById('mesAtualTituloTrans');
-        
         const anoFiltro = dataFiltro.getFullYear();
         const mesFiltro = dataFiltro.getMonth();
-        tituloMes.innerText = `${mesesNomes[mesFiltro]} ${anoFiltro}`;
+        
+        // Atualiza título da tabela
+        mesAtualTituloTrans.innerText = `${mesesNomes[mesFiltro]} ${anoFiltro}`;
+
+        // ATUALIZA O AVISO EXPLICATIVO DA IA NA TELA
+        if (textoDestinoFatura) {
+            textoDestinoFatura.innerText = `Fatura de ${mesesNomes[mesFiltro]} (Vencimento 11/${String(mesFiltro + 1).padStart(2, '0')}/${anoFiltro})`;
+        }
 
         const dados = getData();
-        const contas = dados.contas || [];
+        const prefixo = `${anoFiltro}-${String(mesFiltro + 1).padStart(2, '0')}`;
+        const filtradas = (dados.contas || []).filter(c => c.dataExata && c.dataExata.startsWith(prefixo));
 
-        const prefixoData = `${anoFiltro}-${String(mesFiltro + 1).padStart(2, '0')}`;
-        const contasFiltradas = contas.filter(c => c.dataExata && c.dataExata.startsWith(prefixoData));
-
-        if (contasFiltradas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">Nenhuma movimentação neste mês.</td></tr>`;
+        if (filtradas.length === 0) {
+            corpoTabela.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhuma conta para este mês.</td></tr>`;
             return;
         }
 
-        contasFiltradas.sort((a, b) => new Date(b.dataExata) - new Date(a.dataExata));
+        filtradas.sort((a, b) => new Date(b.dataExata) - new Date(a.dataExata));
 
-        corpoTabela.innerHTML = contasFiltradas.map(item => {
-            const valorFormatado = `- ${formatCurrency(item.valor)}`;
-            const categoria = item.categoria || '💰 Conta';
-
-            const partesData = item.dataExata ? item.dataExata.split('-') : ['00', '00', '0000'];
-            const dataBonita = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : item.dataExata;
-
+        corpoTabela.innerHTML = filtradas.map(item => {
+            const dataBr = item.dataExata.split('-').reverse().join('/');
             return `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;">
-                    <td style="padding: 15px; color: var(--text-muted);">${dataBonita}</td>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px;">${dataBr}</td>
                     <td style="padding: 15px; font-weight: bold; color: #fff;">${item.descricao}</td>
+                    <td style="padding: 15px;"><span style="background: rgba(0,245,212,0.1); color: var(--primary-cyan); padding: 5px 10px; border-radius: 5px; font-size: 0.85rem;">${item.categoria || '💰 Conta'}</span></td>
+                    <td style="padding: 15px; color: var(--danger-red); font-weight: bold;">- ${formatCurrency(item.valor)}</td>
                     <td style="padding: 15px;">
-                        <span style="background: rgba(0,245,212,0.1); color: var(--primary-cyan); padding: 5px 10px; border-radius: 5px; font-size: 0.85rem;">
-                            ${categoria}
-                        </span>
-                    </td>
-                    <td style="padding: 15px; color: var(--danger-red); font-weight: bold;">${valorFormatado}</td>
-                    <td style="padding: 15px; display: flex; gap: 10px;">
-                        <button onclick="editarTransacao(${item.id})" style="background: none; border: none; color: var(--primary-cyan); text-decoration: underline; cursor: pointer; font-size: 0.85rem;">Editar</button>
-                        <button onclick="apagarTransacao(${item.id})" style="background: none; border: none; color: var(--danger-red); text-decoration: underline; cursor: pointer; font-size: 0.85rem;">Excluir</button>
+                        <button onclick="editarTransacao(${item.id})" style="background:none; border:none; color:var(--primary-cyan); cursor:pointer; margin-right:10px; text-decoration: underline;">Editar</button>
+                        <button onclick="apagarTransacao(${item.id})" style="background:none; border:none; color:var(--danger-red); cursor:pointer; text-decoration: underline;">Excluir</button>
                     </td>
                 </tr>
             `;
